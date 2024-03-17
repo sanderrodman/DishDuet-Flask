@@ -12,28 +12,12 @@
     flex-direction: column;
 }
 
-#google-c{
-    color:#4285F4;
+.color-1 {
+    color: maroon;
 }
 
-#google-s{
-    color:#DB4437;
-}
-
-#google-4{
-    color:	#4285F4;
-}
-/* DB4437 */
-#google-3{
-    color:	#DB4437;
-}
-
-#google-0-1{
-    color:	#0F9D58;
-}
-
-#google-0-2{
-    color:#DB4437;
+.color-2 {
+    color: gold;
 }
 
 .google-colors{
