@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS recipes;
 
-CREATE TABLE episodes(
+CREATE TABLE recipes(
     id int,
     name varchar(1024),
     cooktime varchar(1024),
