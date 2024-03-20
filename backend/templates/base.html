@@ -12,18 +12,25 @@
                 <h1 class="color-1">Duet</h1>
             </div>
             <div>
-                <h4>Input ingredients you would like in the recipe:</h4>
+                <h4>Weight:</h4>
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                    <input id="filter-text-val" onkeyup="filterText()">
                 </div>
             </div>
 
             <div>
-                <h4>Input ingredients you do not want in the recipe:</h4>
+                <h4>Age:</h4>
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="Un-Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                    <input id="filter-text-val" onkeyup="filterText()">
+                </div>
+            </div>
+            <div>
+                <h4>Height:</h4>
+                <div class="input-box" onclick="sendFocus()">
+                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                    <input id="filter-text-val" onkeyup="filterText()">
                 </div>
             </div>
 
