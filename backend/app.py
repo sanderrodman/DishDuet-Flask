@@ -24,6 +24,28 @@ mysql_engine.load_file_into_db()
 app = Flask(__name__)
 CORS(app)
 
+
+allergies = {
+    "nuts": ["almond", "almond butter", "beechnut", "butternut",
+             "cashew", "chestnut", "hazelnut", "macademia", "pecan",
+             "pine", "pistachio", "praline", "walnut", "brazil"],
+    "vegetarian": ["ham", "beef", "chicken", "turkey", "duck", "squid",
+                   "bacon", "pork", "fish", "lamb", "lobster", "snail",
+                   "scallop", "frog", "snail", "oyster", "rabbit", "octopus",
+                   "clam", "mussel", "goat", "fowl", "venison", "crab",
+                   "sausage", "veal", "tuna", "salmon", "tilapia", "pepperoni"],
+    "dairy": ["butter", "ghee", "casein", "cheese", "cream", "goat cheese",
+              "milk", "yogurt", "custard", "sour cream", "ice cream",
+              "whipped cream", "blue cheese", "cottage cheese", "whole milk", 
+              "half and half", "whipped cream"],
+    "gluten": ["cereal", "rye", "barley", "oats", "flour", "pasta",
+               "bagel", "beer", "wheat"],
+    "shellfish": ["snail", "lobster", "clam", "squid", "oyster",
+                  "scallop", "crayfish", "prawn", "octopus",
+                  "shrimp", "crab"]
+}
+
+
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
