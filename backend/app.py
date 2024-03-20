@@ -45,6 +45,7 @@ allergies = {
                   "shrimp", "crab"]
 }
 
+allergies["vegan"] = allergies["vegetarian"] + allergies["eggs"] + allergies["dairy"]
 
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
