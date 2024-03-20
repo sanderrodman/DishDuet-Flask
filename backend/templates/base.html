@@ -12,25 +12,18 @@
                 <h1 class="color-1">Duet</h1>
             </div>
             <div>
-                <h4>Weight:</h4>
+                <h4>Input ingredients you would like in the recipe:</h4>
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input id="filter-text-val" onkeyup="filterText()">
+                    <input placeholder="Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
                 </div>
             </div>
 
             <div>
-                <h4>Age:</h4>
+                <h4>Input ingredients you do not want in the recipe:</h4>
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input id="filter-text-val" onkeyup="filterText()">
-                </div>
-            </div>
-            <div>
-                <h4>Height:</h4>
-                <div class="input-box" onclick="sendFocus()">
-                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input id="filter-text-val" onkeyup="filterText()">
+                    <input placeholder="Un-Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
                 </div>
             </div>
 
@@ -38,6 +31,39 @@
         <div id="answer-box">
 
         </div>
+
+        <div class = "allergen_container">
+            <h3>Allergies:</h3>
+
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Dairy</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="gluten">Gluten</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="shellfish">Shellfish</label><br />
+        
+        </div>
+
+        <div class = "place_holder">
+            <h3>What ever filter we want can go below</h3>
+
+            <label class="place_holder">
+                <input type="radio" class="radio_button" id="place_holder" name="place_holder
+                    value="Place_holder">Place_holder_1</input><br />
+            </label>
+
+            <label class="place_holder">
+                <input type="radio" class="radio_button" id="place_holder" name="place_holder
+                    value="Place_holder">Place_holder_2</input><br />
+            </label>
+
+            <label class="place_holder">
+                <input type="radio" class="radio_button" id="place_holder" name="place_holder
+                    value="Place_holder">Place_holder_2</input><br />
+            </label>
+
+        </div>
+
     </div>
 
     <script>
