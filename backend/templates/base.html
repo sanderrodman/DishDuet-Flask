@@ -12,65 +12,55 @@
 </head>
 
 <body>
-
-    <div class="body flex">
-        
-        <aside class="flex">
-            <header>
- 
-                <h1 class="color-2">🍔  Dish</h1>
-                <h1 class="color-1">Duet  🍖</h1>
-            </header>
-            <div class="flex small-aside">
-                <div class="top-text">
-                    <div>
-                        <h4>Search For Recipes</h4>
-                        <div class="input-box" onclick="sendFocus()">
-                            <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                            <input placeholder="What's Cooking?" id="filter-text-val" onkeyup="filterText()">
-                        </div>
-                    </div>
-    
-                    <div>
-                        <h4>Input ingredients you do not want in the recipe:</h4>
-                        <div class="input-box" onclick="sendFocus()">
-                            <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                            <input placeholder="Unwanted Ingredients" id="filter-text-val" onkeyup="filterText()">
-                        </div>
-                    </div>
-    
+    <div class="full-body-container">
+        <div class="top-text">
+            <div class="google-colors">
+                <h1 class="color-2">Dish</h1>
+                <h1 class="color-1">Duet</h1>
+            </div>
+            <div>
+                <h4>Input ingredients you would like in the recipe:</h4>
+                <div class="input-box" onclick="sendFocus()">
+                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                    <input placeholder="Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
                 </div>
-                <div class = "side_by_side">
-                    <div class = "allergen_container">
-                        <h3>Allergies:</h3>
-    
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Dairy</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Egg</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="gluten">Gluten</label><br/>
-                        <label class="allergen_container"><input type="checkbox" name="allergy-type" value="shellfish">Shellfish</label><br/>
-                    </div>
-    
-                    <div class = "time_constraint_container">
-                        <h3>Cook time:</h3>
-    
-                        <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
-                        <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
-                        <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to 2 hours</label><br />
-                        <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+ hours</label><br />
-    
-                    </div>
-    
-                </div>  
             </div>
-        </aside>
-        <main>
-            <div id="answer-box">
-                
+
+            <div>
+                <h4>Input ingredients you do not want in the recipe:</h4>
+                <div class="input-box" onclick="sendFocus()">
+                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                    <input placeholder="Un-Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                </div>
             </div>
-        </main>
+
+        </div>
+        <div id="answer-box">
+
+        </div>
+        <div class = "side_by_side">
+        <div class = "allergen_container">
+            <h3>Allergies:</h3>
+
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Dairy</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Egg</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="gluten">Gluten</label><br />
+            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="shellfish">Shellfish</label><br />
+        </div>
+
+        <div class = "time_constraint_container">
+            <h3>Cook time:</h3>
+
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to 2 hours</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+ hours</label><br />
+
+        </div>
+        </div>
     </div>
     <script>
 
