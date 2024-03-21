@@ -23,7 +23,13 @@
                 <h4>Input ingredients you do not want in the recipe:</h4>
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="Un-Wanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                    <input placeholder="Unwanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                </div>
+                <div>
+                    <h4>Desired caloric intake:</h4>
+                    <div class="sinput-box" onclick="sendFocus()">
+                        <input id="filter-text-val" onkeyup="filterText()">
+                    </div>
                 </div>
             </div>
 
@@ -32,28 +38,49 @@
 
         </div>
         <div class = "side_by_side">
-        <div class = "allergen_container">
-            <h3>Allergies:</h3>
+            <div class = "allergen_container">
+                <h3>Allergies:</h3>
 
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Dairy</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Egg</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="gluten">Gluten</label><br />
-            <label class="allergen_container"><input type="checkbox" name="allergy-type" value="shellfish">Shellfish</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Dairy</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="dairy">Egg</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="gluten">Gluten</label><br />
+                <label class="allergen_container"><input type="checkbox" name="allergy-type" value="shellfish">Shellfish</label><br />
+            </div>
+
+            <div class = "time_constraint_container">
+                <h3>Cook time:</h3>
+
+                <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
+                <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
+                <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to 2 hours</label><br />
+                <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+ hours</label><br />
+
+            </div>
+        </div>
+        <div class="side_by_side" id="macros">
+            <h4>Carbs:</h4>
+            <div class="sinput-box" onclick="sendFocus()">
+                <input id="filter-text-val" onkeyup="filterText()">
+            </div>
+        
+        
+            <h4>Fat:</h4>
+            <div class="sinput-box" onclick="sendFocus()">
+                <input id="filter-text-val" onkeyup="filterText()">
+            </div>
+        
+        
+            <h4>Protein:</h4>
+            <div class="sinput-box" onclick="sendFocus()">
+                <input id="filter-text-val" onkeyup="filterText()">
+            </div>
         </div>
 
-        <div class = "time_constraint_container">
-            <h3>Cook time:</h3>
-
-            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
-            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
-            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to 2 hours</label><br />
-            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+ hours</label><br />
-
-        </div>
-        </div>
+        <button type="button">Show me recipes!</button>
+        
     </div>
 
     <script>

@@ -1,15 +1,16 @@
-.full-body-container{
+.full-body-container {
     position: absolute;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    width:100%;
-    height:100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: start;
     align-items: center;
     flex-direction: column;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .color-1 {
@@ -20,40 +21,29 @@
     color: gold;
 }
 
-.google-colors{
+.google-colors {
     display: flex;
     align-items: center;
     font-size: 48px;
     font-family: 'Open Sans', sans-serif;
 }
 
-.google-colors h1{
+.google-colors h1 {
     margin-bottom: 0;
     margin-right: 3px;
 }
 
-.input-box{
+.input-box {
     border-radius: 50px;
-    border:1px solid black;
+    border: 1px solid black;
     display: flex;
     align-items: center;
     margin-top: 10px;
-    padding:12px;
+    padding: 12px;
     width: 600px;
 }
 
-.input-box img{
-    height: 20px;
-    width:20px;
-}
-
-.top-text{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.input-box input{
+.sinput-box input {
     width: 100%;
     margin-left: 10px;
     font-size: 16px;
@@ -61,27 +51,77 @@
     outline: 0;
 }
 
-#answer-box{
-    width: 700px;
-    margin-top:50px; 
+.input-box img {
+    height: 20px;
+    width: 20px;
 }
 
-.episode-title{
+.top-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-box input {
+    width: 100%;
+    margin-left: 10px;
+    font-size: 16px;
+    border: none;
+    outline: 0;
+}
+
+.sinput-box {
+    border-radius: 50px;
+    border: 1px solid black;
+    margin-top: 10px;
+    padding: 12px;
+    width: 150px;
+    margin-right: 15px;
+
+}
+
+button {
+    display: flex;
+    justify-content: center;
+    background-color: gold;
+    border-radius: 4px;
+    font-size: 16px;
+    border: none;
+    padding: 15px 32px;
+    text-decoration: none;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#macros h4 {
+    margin-right: 15px;
+}
+#macros {
+    margin-top: 20px;
+    margin-bottom: 20px
+}
+
+#answer-box {
+    width: 700px;
+    margin-top: 50px;
+}
+
+.episode-title {
     font-family: 'Kanit', sans-serif;
 }
 
-.episode-desc{
+.episode-desc {
     font-family: 'Montserrat', sans-serif;
 }
 
-.side_by_side{
+.side_by_side {
     display: inline-flex
 }
 
-.allergen_container{
+.allergen_container {
     padding-right: 25px;
 }
 
-.time_constraint_container{
+.time_constraint_container {
     padding-left: 25px;
 }
