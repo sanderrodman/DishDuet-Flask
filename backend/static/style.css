@@ -73,3 +73,7 @@
 .episode-desc{
     font-family: 'Montserrat', sans-serif;
 }
+
+.side_by_side{
+    display: inline-flex
+}

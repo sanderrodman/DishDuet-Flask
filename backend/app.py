@@ -38,6 +38,7 @@ allergies = {
               "milk", "yogurt", "custard", "sour cream", "ice cream",
               "whipped cream", "blue cheese", "cottage cheese", "whole milk", 
               "half and half", "whipped cream"],
+    "egg": ["egg", "quail egg", "duck egg"],
     "gluten": ["cereal", "rye", "barley", "oats", "flour", "pasta",
                "bagel", "beer", "wheat"],
     "shellfish": ["snail", "lobster", "clam", "squid", "oyster",
@@ -45,7 +46,7 @@ allergies = {
                   "shrimp", "crab"]
 }
 
-allergies["vegan"] = allergies["vegetarian"] + allergies["dairy"]
+allergies["vegan"] = allergies["vegetarian"] + allergies["egg"] + allergies["dairy"]
 
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
