@@ -44,23 +44,13 @@
         
         </div>
 
-        <div class = "place_holder">
-            <h3>What ever filter we want can go below</h3>
+        <div class = "time_constraint_container">
+            <h3>Cook time</h3>
 
-            <label class="place_holder">
-                <input type="radio" class="radio_button" id="place_holder" name="place_holder
-                    value="Place_holder">Place_holder_1</input><br />
-            </label>
-
-            <label class="place_holder">
-                <input type="radio" class="radio_button" id="place_holder" name="place_holder
-                    value="Place_holder">Place_holder_2</input><br />
-            </label>
-
-            <label class="place_holder">
-                <input type="radio" class="radio_button" id="place_holder" name="place_holder
-                    value="Place_holder">Place_holder_2</input><br />
-            </label>
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to 2 hours</label><br />
+            <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+ hours</label><br />
 
         </div>
 
@@ -70,8 +60,8 @@
 
         function answerBoxTemplate(title,titleDesc){
             return `<div class=''>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
+                <h3 class='recipe-title'>${title}</h3>
+                <p class='recipe-desc'>${titleDesc}</p>
             </div>`
         }
 
