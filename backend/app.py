@@ -51,9 +51,10 @@ allergies["vegan"] = allergies["vegetarian"] + allergies["egg"] + allergies["dai
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
-def sql_search(episode):
-    query_sql = f"""SELECT * FROM episodes WHERE LOWER( title ) LIKE '%%{episode.lower()}%%' limit 10"""
-    keys = ["id","title","descr"]
+def sql_search(name):
+    name = str(name)
+    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name.lower()}%%%%' limit 10"""
+    keys = ["id","dishname","descriptions"]
     data = mysql_engine.query_selector(query_sql)
     return json.dumps([dict(zip(keys,i)) for i in data])
 
@@ -61,9 +62,9 @@ def sql_search(episode):
 def home():
     return render_template('base.html',title="sample html")
 
-@app.route("/episodes")
+@app.route("/recipes")
 def episodes_search():
-    text = request.args.get("title")
+    text = request.args.get("recipe")
     return sql_search(text)
 
 if 'DB_NAME' not in os.environ:
