@@ -77,3 +77,11 @@
 .side_by_side{
     display: inline-flex
 }
+
+.allergen_container{
+    padding-right: 25px;
+}
+
+.time_constraint_container{
+    padding-left: 25px;
+}
