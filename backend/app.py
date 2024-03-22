@@ -3,7 +3,12 @@ import os
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
-from credentials import LOCAL_MYSQL_USER_PASSWORD
+
+try: 
+    from credentials import LOCAL_MYSQL_USER_PASSWORD
+except: 
+    LOCAL_MYSQL_USER_PASSWORD = "cs4300food"
+
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
