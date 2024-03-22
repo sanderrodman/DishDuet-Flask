@@ -83,10 +83,14 @@
 
     <script>
 
-        function answerBoxTemplate(dishname, detail) {
-            return `<div class=''>
-                <h3 class='recipe-title'>${dishname}</h3>
-                <p class='recipe-detail'>${detail}</p>
+        function answerBoxTemplate(dishname, rating, img) {
+            return `
+            <div class='result flex'>
+                <div>
+                    <h3 class='recipe-title'>${dishname}</h3>
+                    ${rating}
+                </div>
+                <img src="${img}" alt="${dishname}">
             </div>`
         }
 
@@ -118,7 +122,7 @@
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.dishname, row.detail)
+                    tempDiv.innerHTML = answerBoxTemplate(row.dishname, row.aggregatedrating, row.images)
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }));
 
