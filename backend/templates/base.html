@@ -4,7 +4,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>DishDuet - Flaskr</title>
+    <title>DishDuet</title>
+    <link rel="icon" href="/backend/templates/favicon.png">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +32,8 @@
                 <div>
                     <div class="flex" id="unwanted-box" onclick="">
                         <label for="unwanted">List Ingredients To Avoid</label>
-                        <input type="text" placeholder="Unwanted Ingredients" class="mainLoginInput" id="unwanted">
+                        <input type="text" placeholder="Unwanted Ingredients" class="mainLoginInput" 
+                            id="unwanted" onkeyup="filterText()">
                     </div>
                 </div>
 
@@ -41,32 +43,32 @@
                     <h3>Allergies</h3>
 
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="nut">Nut</label><br />
+                            value="nut" onclick="filterText()">Nut</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="vegetarian">Vegetarian</label><br />
+                            value="vegetarian" onclick="filterText()">Vegetarian</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="vegan">Vegan</label><br />
+                            value="vegan" onclick="filterText()">Vegan</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="dairy">Dairy</label><br />
+                            value="dairy" onclick="filterText()">Dairy</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="dairy">Egg</label><br />
+                            value="dairy" onclick="filterText()">Egg</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="gluten">Gluten</label><br />
+                            value="gluten" onclick="filterText()">Gluten</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="shellfish">Shellfish</label><br />
+                            value="shellfish" onclick="filterText()">Shellfish</label><br />
                 </div>
 
                 <div class="time_constraint_container">
                     <h3>Cook time</h3>
 
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30
-                        Minutes</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30
-                        minutes to 1 hour</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2">1 to
-                        2 hours</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+">2+
-                        hours</label><br />
+                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30" onclick="filterText()">
+                        Under 30 Minutes</label><br />
+                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1" onclick="filterText()">
+                        30 minutes to 1 hour</label><br />
+                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2" onclick="filterText()">
+                        1 to 2 hours</label><br />
+                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+" onclick="filterText()">
+                        2+ hours</label><br />
 
                 </div>
 
@@ -96,7 +98,23 @@
             document.body.scrollTop = document.documentElement.scrollTop = 0; // sends screen to top of page
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
-            fetch("/recipes?" + new URLSearchParams({ dishname: document.getElementById("filter-text-val").value }).toString())
+            
+            var allergies = "" 
+            var inputElements = document.getElementsByName("allergy-type")
+            for (var i=0; i<inputElements.length; ++i) {
+                if (inputElements[i].checked) {
+                    allergies += inputElements[i].value + " " // collects checked allergies
+                }
+            }
+
+            fetch("/recipes?" + new URLSearchParams({
+
+                dishname: document.getElementById("filter-text-val").value,
+                unwanted: document.getElementById("unwanted").value,
+                allergies: allergies
+        
+            }).toString())
+
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")

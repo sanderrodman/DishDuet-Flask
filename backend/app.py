@@ -26,8 +26,8 @@ app = Flask(__name__)
 CORS(app)
 
 
-allergies = {
-    "nuts": ["almond", "almond butter", "beechnut", "butternut",
+allergies_dic = {
+    "nut": ["almond", "almond butter", "beechnut", "butternut",
              "cashew", "chestnut", "hazelnut", "macademia", "pecan",
              "pine", "pistachio", "praline", "walnut", "brazil"],
     "vegetarian": ["ham", "beef", "chicken", "turkey", "duck", "squid", "jerky",
@@ -47,19 +47,29 @@ allergies = {
                   "shrimp", "crab"]
 }
 
-allergies["vegan"] = allergies["vegetarian"] + allergies["egg"] + allergies["dairy"]
+allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
-def sql_search(name):
+def sql_search(name, unwanted, allergies):
 
-    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name.lower()}%%%%' limit 15"""
+    allergies_string = ""
+    for allergie in allergies:
+        for food in allergies_dic[allergie]:
+            allergies_string += f"""AND LOWER( ingredientparts ) NOT LIKE '%%%%{food}%%%%' """
+
+    unwanted_string = ""
+    for unwant in unwanted:
+        unwanted_string += f"""AND LOWER( ingredientparts ) NOT LIKE '%%%%{unwant}%%%%' """
+
+    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%' """\
+        + unwanted_string + allergies_string + f"""limit 20"""
 
     keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "recipeingredientquantities","recipeingredientparts","aggregatedrating","reviewcount","calories",\
-                "fatcontent","saturatedfatcontent","cholesterolcontent","sodiumcontent","carbohydratecontent",\
-                    "fibercontent","sugarcontent","proteincontent","recipeinstructions","images"]
+            "ingredientquantities","ingredientparts","aggregatedrating","reviewcount","calories",\
+                "fat","saturdatedfat","cholesterol","sodium","carbs","fiber","sugar","protein",\
+                    "instructions","images"]
     
     data = mysql_engine.query_selector(query_sql)
     return json.dumps([dict(zip(keys,i)) for i in data])
@@ -69,9 +79,17 @@ def home():
     return render_template('base.html',title="sample html")
 
 @app.route("/recipes")
-def episodes_search():
-    text = request.args.get("dishname")
-    return sql_search(text)
+def search():
+
+    dishname = request.args.get("dishname").lower().strip()
+
+    unwanted = request.args.get("unwanted").lower().strip()
+
+    unwanted = unwanted.split(",") if "," in unwanted else unwanted.split()
+
+    allergies = request.args.get("allergies").strip().split()
+
+    return sql_search(dishname, unwanted, allergies)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)
