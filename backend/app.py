@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
+from credentials import LOCAL_MYSQL_USER_PASSWORD
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -12,9 +13,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 LOCAL_MYSQL_USER = "root"
-LOCAL_MYSQL_USER_PASSWORD = "cs4300food"
+LOCAL_MYSQL_USER_PASSWORD = LOCAL_MYSQL_USER_PASSWORD
 LOCAL_MYSQL_PORT = 3306
-LOCAL_MYSQL_DATABASE = "DishDuet"
+LOCAL_MYSQL_DATABASE = "dishduet"
 
 mysql_engine = MySQLDatabaseHandler(LOCAL_MYSQL_USER,LOCAL_MYSQL_USER_PASSWORD,LOCAL_MYSQL_PORT,LOCAL_MYSQL_DATABASE)
 
