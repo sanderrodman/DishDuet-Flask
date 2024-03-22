@@ -1,17 +1,48 @@
 html {
     font-family: "Jua", sans-serif;
-    background-color: honeydew;
+    background-color: honeydew; 
+    box-sizing: border-box;
 }
 
-html, body, .body {
+html, body {
     height: 100%;
 }
 
-.body {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 80%;
-    min-width: 900px;
+body {
+    display: block;
+    margin: 0px auto 0px auto;
+    max-width: 1200px;
+}
+
+section {
+    min-height: 100%;
+    height: auto;
+}
+
+input[type="text"] {
+    font-family: "Jua", sans-serif;
+    padding: 0px;
+    margin: 0px;
+}
+
+.mainLoginInput::placeholder{
+    font-family: "Jua", sans-serif;
+}
+
+#unwanted-box {
+    margin-top: 10px;
+    flex-direction: column;
+}
+
+#unwanted-box input {
+    height: 20px;
+    border-radius: 10px;
+    padding: 10px;
+    border: solid black 1px;
+}
+
+#unwanted-box input:focus {
+    outline: none;
 }
 
 .color-1 {
@@ -26,40 +57,48 @@ html, body, .body {
     display: flex;
 }
 
-header {
-    margin: 5px;
-}
-
 aside {
     flex-direction: column;
     width: max-content;
 }
 
 main {
-    margin: 5px;
     background-color: lightcoral;
-    border: 3px solid black;
-    border-radius: 20px;
     flex-grow: 1;
+    width: min-content;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+aside, main {
+    margin: 6px;
+}
+
+.top-text label {
+    font-size: 120%;
+}
+
+main, .small-aside {
+    padding: 15px;
 }
 
 .small-aside {
     background-color: palegoldenrod;
-    border: 3px solid black;
-    border-radius: 20px;
-    padding: 15px;
-    margin: 5px;
     flex-direction: column;
+    position: sticky;
+    top: 15px;
 }
 
 header{
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
-    background-color:lightcyan;
+    font-size: 40px;
+}
+
+.small-aside, main {
     border: 3px solid black;
-    border-radius: 20px;
+    border-radius: 10px;
 }
 
 header h1 {
@@ -78,7 +117,7 @@ header h1 {
     border: 1px solid black;
     display: flex;
     align-items: center;
-    padding:12px;
+    padding: 10px;
     background-color: white;
 }
 
@@ -88,7 +127,7 @@ header h1 {
 
 .input-box img{
     height: 20px;
-    width:20px;
+    width: 20px;
 }
 
 .top-text{
@@ -96,16 +135,15 @@ header h1 {
     flex-direction: column;
 }
 
+.top-text input {
+    font-size: 100%;
+}
+
 .input-box input{
     width: 100%;
     margin-left: 10px;
-    font-size: 16px;
     border: none;
     outline: 0;
-}
-
-#answer-box{
-    margin-top:50px; 
 }
 
 .episode-title{
@@ -117,7 +155,11 @@ header h1 {
 }
 
 .side_by_side{
-    display: inline-flex
+    display: inline-flex;
+}
+
+.side_by_side h3 {
+    margin-bottom: 5px;
 }
 
 .allergen_container{

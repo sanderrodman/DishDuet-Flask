@@ -52,9 +52,14 @@ allergies["vegan"] = allergies["vegetarian"] + allergies["egg"] + allergies["dai
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
 def sql_search(name):
-    name = str(name)
-    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name.lower()}%%%%' limit 10"""
-    keys = ["id","dishname","descriptions"]
+
+    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name.lower()}%%%%' limit 15"""
+
+    keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
+            "recipeingredientquantities","recipeingredientparts","aggregatedrating","reviewcount","calories",\
+                "fatcontent","saturatedfatcontent","cholesterolcontent","sodiumcontent","carbohydratecontent",\
+                    "fibercontent","sugarcontent","proteincontent","recipeinstructions","images"]
+    
     data = mysql_engine.query_selector(query_sql)
     return json.dumps([dict(zip(keys,i)) for i in data])
 
@@ -64,7 +69,7 @@ def home():
 
 @app.route("/recipes")
 def episodes_search():
-    text = request.args.get("recipe")
+    text = request.args.get("dishname")
     return sql_search(text)
 
 if 'DB_NAME' not in os.environ:

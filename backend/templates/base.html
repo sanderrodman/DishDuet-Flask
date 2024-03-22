@@ -12,38 +12,34 @@
 </head>
 
 <body>
-
-    <div class="body flex">
-        
+    <section class="flex">
         <aside class="flex">
             <header>
- 
                 <h1 class="color-2">🍔  Dish</h1>
                 <h1 class="color-1">Duet  🍖</h1>
             </header>
-            <div class="flex small-aside">
+            <div class="small-aside">
                 <div class="top-text">
                     <div>
-                        <h4>Search For Recipes</h4>
+                        <label for="filter-text-val">Search For Recipes</label>
                         <div class="input-box" onclick="sendFocus()">
                             <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                            <input placeholder="What's Cooking?" id="filter-text-val" onkeyup="filterText()">
+                            <input type="text" placeholder="What's Cooking?" class="mainLoginInput" id="filter-text-val" onkeyup="filterText()">
                         </div>
                     </div>
     
                     <div>
-                        <h4>Input ingredients you do not want in the recipe:</h4>
-                        <div class="input-box" onclick="sendFocus()">
-                            <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                            <input placeholder="Unwanted Ingredients" id="filter-text-val" onkeyup="filterText()">
+                        <div class="flex" id="unwanted-box" onclick="">
+                            <label for="unwanted" >List Ingredients To Avoid</label>
+                            <input type="text" placeholder="Unwanted Ingredients" class="mainLoginInput" id="unwanted">
                         </div>
                     </div>
     
                 </div>
                 <div class = "side_by_side">
                     <div class = "allergen_container">
-                        <h3>Allergies:</h3>
-    
+                        <h3>Allergies</h3>
+                    
                         <label class="allergen_container"><input type="checkbox" name="allergy-type" value="nut">Nut</label><br/>
                         <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegetarian">Vegetarian</label><br/>
                         <label class="allergen_container"><input type="checkbox" name="allergy-type" value="vegan">Vegan</label><br/>
@@ -54,7 +50,7 @@
                     </div>
     
                     <div class = "time_constraint_container">
-                        <h3>Cook time:</h3>
+                        <h3>Cook time</h3>
     
                         <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30">Under 30 Minutes</label><br />
                         <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1">30 minutes to 1 hour</label><br />
@@ -71,13 +67,13 @@
                 
             </div>
         </main>
-    </div>
+    </section>
     <script>
 
-        function answerBoxTemplate(dishname,descriptions){
+        function answerBoxTemplate(dishname,detail){
             return `<div class=''>
                 <h3 class='recipe-title'>${dishname}</h3>
-                <p class='recipe-desc'>${descriptions}</p>
+                <p class='recipe-desc'>${detail}</p>
             </div>`
         }
 
@@ -86,14 +82,14 @@
         }
 
         function filterText(){
+            document.body.scrollTop = document.documentElement.scrollTop = 0; // sends screen to top of page
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
             fetch("/recipes?" + new URLSearchParams({ dishname: document.getElementById("filter-text-val").value }).toString())
             .then((response) => response.json())
             .then((data) => data.forEach(row => {
-                
                 let tempDiv = document.createElement("div")
-                tempDiv.innerHTML = answerBoxTemplate(row.dishname,row.descriptions)
+                tempDiv.innerHTML = answerBoxTemplate(row.dishname,row.detail)
                 document.getElementById("answer-box").appendChild(tempDiv)
             }));
 
