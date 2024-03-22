@@ -2,6 +2,7 @@ html {
     font-family: "Jua", sans-serif;
     background-color: honeydew; 
     box-sizing: border-box;
+    width: 100%;
 }
 
 html, body {
@@ -9,14 +10,14 @@ html, body {
 }
 
 body {
-    display: block;
     margin: 0px auto 0px auto;
     max-width: 1200px;
-}
-
-section {
     min-height: 100%;
     height: auto;
+}
+
+main {
+    
 }
 
 input[type="text"] {
@@ -144,6 +145,16 @@ header h1 {
     margin-left: 10px;
     border: none;
     outline: 0;
+}
+
+.recipe-title {
+    margin: 0px;
+    padding: 10px 0px 4px 0px;
+}
+
+.recipe-detail {
+    margin: 0px;
+    padding: 4px 0px 10px 0px;
 }
 
 .episode-title{
