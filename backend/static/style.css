@@ -176,14 +176,28 @@ header h1 {
 
 .result {
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
 }
 
+.star {
+   flex-direction: row-reverse;
+   justify-content: flex-end;
+   border: none;
+}
 
-.result img {
-    max-width: 30%;
+.star img {
+    width: 20px;
+    padding: 1px;
+}
+
+.result img:not(.star img) {
+    width: 300px;
     border-radius: 10px;
-    border: 1px solid black;
+    border: 2px solid black;
+}
+
+.result p {
+    margin-right: 50px;
 }
 
 /* .time_constraint_container{

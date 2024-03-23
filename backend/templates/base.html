@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DishDuet</title>
-    <link rel="icon" href="/backend/templates/favicon.png">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,12 +83,29 @@
 
     <script>
 
-        function answerBoxTemplate(dishname, rating, img) {
-            return `
+        function star(rating, i=5) {
+            if (rating > 1) {
+                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/star.svg') }}">`
+            }
+            else if (rating > 0.5) {
+                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/half.svg') }}">`
+            }
+            else if (i > 0) {
+                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/no.svg') }}">`
+            }
+            return `` // removes undefined
+        }
+        
+
+        function answerBoxTemplate(dishname, rating, img, detail) {
+            return`
             <div class='result flex'>
                 <div>
                     <h3 class='recipe-title'>${dishname}</h3>
-                    ${rating}
+                    <div class="flex star">
+                        ${star(rating)}
+                    </div>
+                    <p>${detail}</p>
                 </div>
                 <img src="${img}" alt="${dishname}">
             </div>`
@@ -122,7 +139,7 @@
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.dishname, row.aggregatedrating, row.images)
+                    tempDiv.innerHTML = answerBoxTemplate(row.dishname, row.aggregatedrating, row.images, row.detail)
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }));
 
