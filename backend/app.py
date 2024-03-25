@@ -33,7 +33,7 @@ CORS(app)
 
 allergies_dic = {
     "nut": ["almond", "almond butter", "beechnut", "butternut",
-             "cashew", "chestnut", "hazelnut", "macademia", "pecan",
+             "cashew", "chestnut", "hazelnut", "macadamia", "pecan",
              "pine", "pistachio", "praline", "walnut", "brazil"],
     "vegetarian": ["ham", "beef", "chicken", "turkey", "duck", "squid", "jerky",
                    "bacon", "pork", "fish", "lamb", "lobster", "snail", "meatball",
