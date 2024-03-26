@@ -83,33 +83,54 @@
 
     <script>
 
-        function star(rating, i=5) {
-            if (rating > 1) {
-                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/star.svg') }}">`
-            }
-            else if (rating > 0.5) {
-                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/half.svg') }}">`
-            }
-            else if (i > 0) {
-                return star(rating-1, i-1) + `<img src="{{ url_for('static', filename='images/no.svg') }}">`
-            }
-            return `` // removes undefined
-        }
-        
+        function star(rating, reviewcount) {
+                
+            img = ``
+            i = 1
 
-        function answerBoxTemplate(dishname, rating, img, detail) {
+            while (i < rating) {
+                img += `<img src="{{ url_for('static', filename='images/star.svg') }}">\n`
+                i += 1
+            }
+
+            if (i - rating <= 0.5) {
+                img += `<img src="{{ url_for('static', filename='images/half.svg') }}">\n`
+                i += 1
+            }
+
+            while (i < 5) {
+                img += `<img src="{{ url_for('static', filename='images/no.svg') }}">\n`
+                i += 1
+            }
+
+            return img + `<p>(${reviewcount})</p>`
+            }
+
+
+        function answerBoxTemplate(dishname, rating, reviewcount, img, detail) {
             return`
             <div class='result flex'>
                 <div>
                     <h3 class='recipe-title'>${dishname}</h3>
                     <div class="flex star">
-                        ${star(rating)}
+                        ${star(rating, reviewcount)}
                     </div>
                     <p>${detail}</p>
                 </div>
                 <img src="${img}" alt="${dishname}">
             </div>`
         }
+        
+        // function UrlExists(url) {
+        //     http = new XMLHttpRequest()
+        //     http.open('HEAD', url, false)
+        //     http.send()
+        //     if (http.status != 404) {
+        //         return true
+        //     } else {
+        //         return false
+        //     }
+        // }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
@@ -139,10 +160,10 @@
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.dishname, row.aggregatedrating, row.images, row.detail)
+                    tempDiv.innerHTML = 
+                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.detail)
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }));
-
         }
 
     </script>

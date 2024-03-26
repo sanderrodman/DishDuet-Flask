@@ -86,7 +86,7 @@ main, .small-aside {
     top: 15px;
 }
 
-header{
+header {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -110,7 +110,7 @@ header h1 {
     margin-right: 5px;
 }
 
-.input-box{
+.input-box {
     border-radius: 10px;
     border: 1px solid black;
     display: flex;
@@ -123,12 +123,12 @@ header h1 {
     margin-bottom: 10px;
 }
 
-.input-box img{
+.input-box img {
     height: 20px;
     width: 20px;
 }
 
-.top-text{
+.top-text {
     display: flex;
     flex-direction: column;
 }
@@ -154,14 +154,6 @@ header h1 {
     padding: 4px 0px 10px 0px;
 }
 
-.episode-title{
-    font-family: 'Kanit', sans-serif;
-}
-
-.episode-desc{
-    font-family: 'Montserrat', sans-serif;
-}
-
 .side_by_side{
     display: inline-flex;
 }
@@ -180,8 +172,7 @@ header h1 {
 }
 
 .star {
-   flex-direction: row-reverse;
-   justify-content: flex-end;
+   justify-content: flex-start;
    border: none;
 }
 
@@ -190,8 +181,14 @@ header h1 {
     padding: 1px;
 }
 
+.star p {
+    margin: 0px;
+    padding: 2px 0px 0px 3px;
+}
+
 .result img:not(.star img) {
-    width: 300px;
+    max-width: 300px;
+    height: 300px;
     border-radius: 10px;
     border: 2px solid black;
 }

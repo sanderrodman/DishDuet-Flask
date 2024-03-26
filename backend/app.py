@@ -69,7 +69,7 @@ def sql_search(name, unwanted, allergies):
         unwanted_string += f"""AND LOWER( ingredientparts ) NOT LIKE '%%%%{unwant}%%%%' """
 
     query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%' """\
-        + unwanted_string + allergies_string + f"""limit 20"""
+        + unwanted_string + allergies_string + f"""ORDER BY LOWER( reviewcount ) DESC limit 20"""
 
     keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
             "ingredientquantities","ingredientparts","aggregatedrating","reviewcount","calories",\
