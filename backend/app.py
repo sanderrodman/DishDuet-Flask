@@ -68,8 +68,8 @@ def sql_search(name, unwanted, allergies, time):
                 "fat","sodium","carbs","fiber","sugar","protein",\
                     "instructions","images"]
 
-    df = pd.read_sql(query_sql, mysql_engine.lease_connection().connection)
-        
+    df = pd.read_sql(query_sql, mysql_engine.engine.connect())
+    
     df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
     df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
 
@@ -131,14 +131,14 @@ def home():
 
 @app.route("/recipes")
 def search():
+    request.args.get("time")
+    dishname = str(request.args.get("dishname")).lower().strip()
 
-    dishname = request.args.get("dishname").lower().strip()
-
-    unwanted = request.args.get("unwanted").lower().strip()
+    unwanted = str(request.args.get("unwanted")).lower().strip()
 
     unwanted = unwanted.split(",") if "," in unwanted else unwanted.split()
 
-    allergies = request.args.get("allergies").strip().split()
+    allergies = str(request.args.get("allergies")).strip().split()
 
     time = int(request.args.get("time"))
 
