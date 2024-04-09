@@ -1,8 +1,13 @@
 import json
 import os
+from re import L
+from unittest import result
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
+import numpy as np
+import pandas as pd
+import sqlalchemy as db
 
 try: 
     from credentials import LOCAL_MYSQL_USER_PASSWORD
@@ -57,27 +62,75 @@ allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + al
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
-def sql_search(name, unwanted, allergies):
+def sql_search(name, unwanted, allergies, time):
 
-    allergies_string = ""
-    for allergie in allergies:
-        for food in allergies_dic[allergie]:
-            allergies_string += f"""AND LOWER( ingredientparts ) NOT LIKE '%%%%{food}%%%%' """
+    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%'"""
 
-    unwanted_string = ""
-    for unwant in unwanted:
-        unwanted_string += f"""AND LOWER( ingredientparts ) NOT LIKE '%%%%{unwant}%%%%' """
-
-    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%' """\
-        + unwanted_string + allergies_string + f"""ORDER BY LOWER( reviewcount ) DESC limit 20"""
-
-    keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientquantities","ingredientparts","aggregatedrating","reviewcount","calories",\
-                "fat","saturdatedfat","cholesterol","sodium","carbs","fiber","sugar","protein",\
-                    "instructions","images"]
+    # keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
+    #         "ingredientquantities","ingredientparts","aggregatedrating","reviewcount","calories",\
+    #             "fat","saturdatedfat","cholesterol","sodium","carbs","fiber","sugar","protein",\
+    #                 "instructions","images"]
     
-    data = mysql_engine.query_selector(query_sql)
-    return json.dumps([dict(zip(keys,i)) for i in data])
+    keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
+            "ingredientparts","aggregatedrating","reviewcount","calories",\
+                "fat","sodium","carbs","fiber","sugar","protein",\
+                    "instructions","images"]
+
+    df = pd.read_sql(query_sql, mysql_engine.lease_connection().connection)
+        
+    df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
+    df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
+
+    df = filter(df, unwanted, allergies, time)
+
+    return json.dumps([dict(zip(keys,i)) for i in df])
+
+
+def filter(df, unwanted, allergies, time):
+    if len(unwanted) != 0:
+        df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
+
+    if len(allergies) !=0:
+        for allergie in allergies:
+            df = df[df["ingredientparts"].apply(lambda x : \
+                ingredient_distance(allergies_dic[allergie], x))]
+
+    if time != 0:
+        df = df[df["time"] <= time]
+
+    return df.values[:15]
+
+
+def ingredient_distance(sources, targets):
+
+    for source in sources:
+        for target in targets:
+            print(source, target)
+            if distance(source, target) < 3:
+                return False
+    return True
+
+
+def distance(source, target):
+    
+    d = np.zeros((len(source), len(target)))
+
+    for i in range(d.shape[0]):
+        d[i,0] = i
+    
+    for j in range(d.shape[1]):
+        d[0,j] = j
+
+    for i in range(d.shape[0]):
+
+        for j in range(d.shape[1]):
+
+            subcost = 0 if source[i] == target[j] else 1
+
+            d[i, j] = np.min(np.array([d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + subcost]))
+
+    return d[i, j]
+
 
 @app.route("/")
 def home():
@@ -94,7 +147,9 @@ def search():
 
     allergies = request.args.get("allergies").strip().split()
 
-    return sql_search(dishname, unwanted, allergies)
+    time = int(request.args.get("time"))
+
+    return sql_search(dishname, unwanted, allergies, time)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)

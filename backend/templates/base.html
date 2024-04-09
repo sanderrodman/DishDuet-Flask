@@ -24,16 +24,15 @@
                     <label for="filter-text-val">Search For Recipes</label>
                     <div class="input-box" onclick="sendFocus()">
                         <img alt="" src="{{ url_for('static', filename='images/mag.png') }}" />
-                        <input type="text" placeholder="What's Cooking?" class="mainLoginInput" id="filter-text-val"
-                            onkeyup="filterText()">
+                        <input type="text" placeholder="What's Cooking?" class="mainLoginInput" id="filter-text-val">
                     </div>
                 </div>
 
                 <div>
-                    <div class="flex" id="unwanted-box" onclick="">
+                    <div class="flex" id="unwanted-box">
                         <label for="unwanted">List Ingredients To Avoid</label>
                         <input type="text" placeholder="Unwanted Ingredients" class="mainLoginInput" 
-                            id="unwanted" onkeyup="filterText()">
+                            id="unwanted">
                     </div>
                 </div>
 
@@ -43,33 +42,35 @@
                     <h3>Allergies</h3>
 
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="nut" onclick="filterText()">Nut</label><br />
+                            value="nut">Nut</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="vegetarian" onclick="filterText()">Vegetarian</label><br />
+                            value="vegetarian">Vegetarian</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="vegan" onclick="filterText()">Vegan</label><br />
+                            value="vegan">Vegan</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="dairy" onclick="filterText()">Dairy</label><br />
+                            value="dairy">Dairy</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="dairy" onclick="filterText()">Egg</label><br />
+                            value="dairy">Egg</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="gluten" onclick="filterText()">Gluten</label><br />
+                            value="gluten">Gluten</label><br />
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
-                            value="shellfish" onclick="filterText()">Shellfish</label><br />
+                            value="shellfish">Shellfish</label><br />
                 </div>
+                <div class="search flex">
+                    <div class="time_constraint_container">
+                        <h3>Cook time</h3>
 
-                <div class="time_constraint_container">
-                    <h3>Cook time</h3>
+                        <label class="time_constraint_container"><input type="radio" name="time-type" value="30">
+                            Under 30 Minutes</label><br />
+                        <label class="time_constraint_container"><input type="radio" name="time-type" value="60">
+                            Under an 1 hour</label><br />
+                        <label class="time_constraint_container"><input type="radio" name="time-type" value="120">
+                            Under 2 hours</label><br />
+                        <label class="time_constraint_container"><input type="radio" name="time-type" value="240">
+                            Under 4 hours</label><br />
 
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30" onclick="filterText()">
-                        Under 30 Minutes</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="30_to_1" onclick="filterText()">
-                        30 minutes to 1 hour</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="1_to_2" onclick="filterText()">
-                        1 to 2 hours</label><br />
-                    <label class="time_constraint_container"><input type="checkbox" name="time-type" value="2+" onclick="filterText()">
-                        2+ hours</label><br />
-
+                    </div>
+                    <button id="search" onclick="filterText()">search</button>
                 </div>
 
             </div>
@@ -98,7 +99,7 @@
                 i += 1
             }
 
-            while (i < 5) {
+            while (i <= 5) {
                 img += `<img src="{{ url_for('static', filename='images/no.svg') }}">\n`
                 i += 1
             }
@@ -107,7 +108,7 @@
             }
 
 
-        function answerBoxTemplate(dishname, rating, reviewcount, img, detail) {
+        function answerBoxTemplate(dishname, rating, reviewcount, img, ingredients) {
             return`
             <div class='result flex'>
                 <div>
@@ -115,7 +116,7 @@
                     <div class="flex star">
                         ${star(rating, reviewcount)}
                     </div>
-                    <p>${detail}</p>
+                    <ul>${printIngredients(ingredients)}</ul>
                 </div>
                 <img src="${img}" alt="${dishname}">
             </div>`
@@ -131,6 +132,16 @@
         //         return false
         //     }
         // }
+
+        function printIngredients(ingredients) {
+            if (ingredients.length != 0) {
+                return `<li>${ingredients.shift()}</li>` + printIngredients(ingredients)
+            }
+            else {
+                return ``
+            }
+
+        }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
@@ -149,11 +160,22 @@
                 }
             }
 
+            var time = 0
+            var inputElements = document.getElementsByName("time-type")
+            for (var i=0; i<inputElements.length; ++i) {
+                if (inputElements[i].checked) {
+                    time = inputElements[i].value // collects checked allergies
+                }
+            }
+
+            time = document.getElementsByName("time-type")[0].value
+
             fetch("/recipes?" + new URLSearchParams({
 
                 dishname: document.getElementById("filter-text-val").value,
                 unwanted: document.getElementById("unwanted").value,
-                allergies: allergies
+                allergies: allergies,
+                time: time
         
             }).toString())
 
@@ -161,7 +183,7 @@
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
                     tempDiv.innerHTML = 
-                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.detail)
+                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.ingredientparts, row.detail)
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }));
         }
