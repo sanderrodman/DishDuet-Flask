@@ -19,4 +19,4 @@ build/
 helpers/*
 credentials.py
 
-venv/
+.vscode/
