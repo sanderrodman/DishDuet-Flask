@@ -18,3 +18,5 @@ build/
 *.egg-info/
 helpers/*
 credentials.py
+
+virtual_env/
