@@ -62,11 +62,6 @@ allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + al
 def sql_search(name, unwanted, allergies, time):
 
     query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%'"""
-
-    # keys = ["id","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-    #         "ingredientquantities","ingredientparts","aggregatedrating","reviewcount","calories",\
-    #             "fat","saturdatedfat","cholesterol","sodium","carbs","fiber","sugar","protein",\
-    #                 "instructions","images"]
     
     keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
             "ingredientparts","aggregatedrating","reviewcount","calories",\
@@ -104,7 +99,6 @@ def ingredient_distance(sources, targets):
 
     for source in sources:
         for target in targets:
-            print(source, target)
             if distance(source, target) < 3:
                 return False
     return True
