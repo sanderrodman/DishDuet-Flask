@@ -68,14 +68,12 @@ def sql_search(name, unwanted, allergies, time):
                 "fat","sodium","carbs","fiber","sugar","protein",\
                     "instructions","images"]
 
-    # df = pd.read_sql(query_sql, mysql_engine.lease_connection().connection)
+    df = pd.read_sql(query_sql, mysql_engine.lease_connection().connection)
 
-    # df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
-    # df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
+    df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
+    df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
 
-    # df = filter(df, unwanted, allergies, time)
-
-    df = mysql_engine.query_selector(query_sql)
+    df = filter(df, unwanted, allergies, time)
 
     return json.dumps([dict(zip(keys,i)) for i in df])
 
