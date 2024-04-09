@@ -1,13 +1,10 @@
 import json
 import os
-from re import L
-from unittest import result
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import numpy as np
 import pandas as pd
-import sqlalchemy as db
 
 try: 
     from credentials import LOCAL_MYSQL_USER_PASSWORD
@@ -97,6 +94,8 @@ def filter(df, unwanted, allergies, time):
 
     if time != 0:
         df = df[df["time"] <= time]
+
+    df = df.sort_values(by="reviewcount", ascending=False)
 
     return df.values[:15]
 
