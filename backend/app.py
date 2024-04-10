@@ -78,7 +78,7 @@ def sql_search(name, unwanted, allergies, time):
     return json.dumps([dict(zip(keys,i)) for i in df])
 
 
-def filter(df, unwanted, allergies, time):
+def filter(df, unwanted, allergies, time): # boolean not search
     if len(unwanted) != 0:
         df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
 
