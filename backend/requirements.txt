@@ -11,9 +11,12 @@ gunicorn==20.1.0
 itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.2
+numpy==1.26.4
+pandas==2.2.1
 protobuf==3.20.3
 pycparser==2.21
 PyMySQL==1.0.2
+setuptools==69.2.0
 six==1.16.0
 smmap==5.0.0
 SQLAlchemy==1.4.46
