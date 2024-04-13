@@ -58,14 +58,19 @@
                     <div class="time_constraint_container">
                         <h3>Cook Time</h3>
 
+                        <p>Under </p>
+                        <label class="time_constraint_container"><input type="text" name="time-type" value="60">
+                            Under 10 Minutes</label>
+                        <p> Minutes</p>
+
                         <label class="time_constraint_container"><input type="radio" name="time-type" value="30">
-                            Under 30 Minutes</label><br />
+                            Under 10 Minutes</label><br />
                         <label class="time_constraint_container"><input type="radio" name="time-type" value="60">
-                            Under an 1 hour</label><br />
+                            Under 20 Minutes</label><br />
                         <label class="time_constraint_container"><input type="radio" name="time-type" value="120">
-                            Under 2 hours</label><br />
+                            Under 30 Minutes</label><br />
                         <label class="time_constraint_container"><input type="radio" name="time-type" value="240">
-                            Under 4 hours</label><br />
+                            Under 40 Minutes</label><br />
 
                     </div>
                     <button id="search" onclick="filterText()">search</button>
@@ -152,7 +157,7 @@
             var inputElements = document.getElementsByName("time-type")
             for (var i=0; i<inputElements.length; ++i) {
                 if (inputElements[i].checked) {
-                    time = inputElements[i].value // collects checked allergies
+                    time = inputElements[i].value // collects checked time
                 }
             }
 
