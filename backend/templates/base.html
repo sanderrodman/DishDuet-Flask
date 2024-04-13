@@ -58,20 +58,7 @@
                     <div class="time_constraint_container">
                         <h3>Cook Time</h3>
 
-                        <p>Under </p>
-                        <label class="time_constraint_container"><input type="text" name="time-type" value="60">
-                            Under 10 Minutes</label>
-                        <p> Minutes</p>
-
-                        <label class="time_constraint_container"><input type="radio" name="time-type" value="30">
-                            Under 10 Minutes</label><br />
-                        <label class="time_constraint_container"><input type="radio" name="time-type" value="60">
-                            Under 20 Minutes</label><br />
-                        <label class="time_constraint_container"><input type="radio" name="time-type" value="120">
-                            Under 30 Minutes</label><br />
-                        <label class="time_constraint_container"><input type="radio" name="time-type" value="240">
-                            Under 40 Minutes</label><br />
-
+                        <label class="time_constraint_container">Max Time:<input type="text" name="time-type" value="60"></label>
                     </div>
                     <button id="search" onclick="filterText()">search</button>
                 </div>
@@ -81,9 +68,13 @@
     </aside>
     <main>
         <div id="answer-box">
-
         </div>
     </main>
+    <div id="recipe-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+        </div>
+    </div>
 
     <script>
 
@@ -111,58 +102,82 @@
             }
 
 
-        function answerBoxTemplate(dishname, rating, reviewcount, img, ingredients) {
+        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients) {
             return`
             <div class='result flex'>
                 <div>
-                    <h3 class='recipe-title'>${dishname}</h3>
+                    <h3 id='recipe-name' class='recipe-title'>${dishname}</h3>
                     <div class="flex star">
                         ${star(rating, reviewcount)}
                     </div>
-                    <ul>${printIngredients(ingredients)}</ul>
+                    <ul>${printIngredients(ingredients.split(" "))}</ul>
+                    <strong>${time} min</strong>
                 </div>
                 <img src="${img}" alt="${dishname}">
             </div>`
         }
-        
+
 
         function printIngredients(ingredients) {
+
             if (ingredients.length != 0) {
-                return `<li>${ingredients.shift()}</li>` + printIngredients(ingredients)
+                const firstElement = ingredients.shift();
+                return `<li>${firstElement}</li>` + printIngredients(ingredients);
             }
             else {
-                return ``
+                return ``;
             }
-
         }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
         }
 
+        // popup box that has the recipe. Pops up when the user clicks on the 
+        // title of the recipe.
+        function recipeBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, instructions) {
+            return `
+            <div class='result flex'>
+                <div>
+                    <img src="${img}" alt="${dishname}">
+                    <h2 class='recipe-title'>${dishname}</h2>
+                    <div class="flex star">
+                        ${star(rating, reviewcount)}
+                    </div>
+                    <ul>${printIngredients(ingredients.split(" "))}</ul> 
+                </div>
+                <p>Time: ${time}</p>
+                <h3>Instructions</h3>
+                <div>
+                    <ol>${printIngredients(instructions.split(" "))}</ol>
+                </div>
+            </div>
+            `
+        }
+
         function filterText() {
             document.body.scrollTop = document.documentElement.scrollTop = 0; // sends screen to top of page
-            document.getElementById("answer-box").innerHTML = ""
-            console.log(document.getElementById("filter-text-val").value)
+            document.getElementById("answer-box").innerHTML = "";
+            console.log(document.getElementById("filter-text-val").value);
             
-            var allergies = "" 
-            var inputElements = document.getElementsByName("allergy-type")
+            var allergies = "";
+            var inputElements = document.getElementsByName("allergy-type");
             for (var i=0; i<inputElements.length; ++i) {
                 if (inputElements[i].checked) {
                     allergies += inputElements[i].value + " " // collects checked allergies
                 }
             }
 
-            var time = 0
-            var inputElements = document.getElementsByName("time-type")
+            var time = 0;
+            var inputElements = document.getElementsByName("time-type");
             for (var i=0; i<inputElements.length; ++i) {
                 if (inputElements[i].checked) {
-                    time = inputElements[i].value // collects checked time
+                    time = inputElements[i].value; // collects checked time
                 }
             }
 
-            time = document.getElementsByName("time-type")[0].value
-
+            time = document.getElementsByName("time-type")[0].value;
+  
             fetch("/recipes?" + new URLSearchParams({
 
                 dishname: document.getElementById("filter-text-val").value,
@@ -172,13 +187,41 @@
         
             }).toString())
 
-                .then((response) => response.json())
-                .then((data) => data.forEach(row => {
-                    let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = 
-                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.ingredientparts, row.detail)
-                    document.getElementById("answer-box").appendChild(tempDiv)
-                }));
+            .then((response) => response.json())
+            .then((data) => data.forEach(row => {
+                let tempDiv = document.createElement("div");
+                tempDiv.innerHTML = 
+                answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts);
+                console.log(row.images)
+                console.log(row.dishname)
+                document.getElementById("answer-box").appendChild(tempDiv);
+   
+
+            }));
+
+            // Get the modal
+            var modal = document.getElementById("recipe-modal");
+
+            // Get the button that opens the modal
+            var btn = document.getElementById("recipe-name");
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+
+            // When the user clicks on the button, open the modal
+            btn.onclick = function() {
+                let tempDivRecipe = document.createElement("div");
+                tempDivRecipe.innerHTML = 
+                recipeBoxTemplate(row.dishname, row.aggregatedrating, 
+                row.reviewcount, row.images, row.time, row.ingredientparts, row.instructions, row.time);
+                document.getElementById("modal-content").appendChild(tempDivRecipe);
+                modal.style.display = "block";
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+            modal.style.display = "none";
+            }
         }
 
     </script>

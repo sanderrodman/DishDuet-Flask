@@ -5,6 +5,12 @@ from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import numpy as np
 import pandas as pd
+import sklearn as sk
+
+import matplotlib.pyplot as plt
+from scipy.sparse.linalg import svds
+from sklearn.preprocessing import normalize
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 try: 
     from credentials import LOCAL_MYSQL_USER_PASSWORD
@@ -32,7 +38,6 @@ mysql_engine.load_file_into_db()
 app = Flask(__name__)
 CORS(app)
 
-
 allergies_dic = {
     "nut": ["almond", "almond butter", "beechnut", "butternut", "peanut",
              "cashew", "chestnut", "hazelnut", "macadamia", "pecan",
@@ -51,34 +56,73 @@ allergies_dic = {
                "bagel", "beer", "wheat"],
     "shellfish": ["snail", "lobster", "clam", "squid", "oyster",
                   "scallop", "crayfish", "prawn", "octopus",
-                  "shrimp", "crab"]
+                  "shrimp", "crab", "crawfish"],
 }
-
 allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
-# Sample search, the LIKE operator in this case is hard-coded, 
-# but if you decide to use SQLAlchemy ORM framework, 
-# there's a much better and cleaner way to do this
-def sql_search(name, unwanted, allergies, time):
+keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
+            "ingredientparts","aggregatedrating","reviewcount","calories", "instructions","images"]
 
-    query_sql = f"""SELECT * FROM recipes WHERE LOWER( dishname ) LIKE '%%%%{name}%%%%'"""
+df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection)
+
+def svd_search(query, unwanted, allergies, time):
     
-    keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientparts","aggregatedrating","reviewcount","calories",\
-                "fat","sodium","carbs","fiber","sugar","protein",\
-                    "instructions","images"]
+    args = cossim_sum_args(query)
 
-    df = pd.read_sql(query_sql, mysql_engine.lease_connection().connection)
+    results = filter(df.iloc[args], unwanted, allergies, time).iloc[:15].values.tolist() # 15 results
 
-    df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
-    df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
+    return json.dumps([dict(zip(keys,i)) for i in results])
 
-    df = filter(df, unwanted, allergies, time)
+# cosine similarity
+def cossim_sum_args(query):
 
-    return json.dumps([dict(zip(keys,i)) for i in df])
+    sum = 0
+    for field in field_to_svds:
+
+        vectorizer, words_compressed, docs_compressed_normed = field_to_svds[field]
+
+        query_tfidf = vectorizer.transform([query]).toarray()
+
+        query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+
+        sum += field_to_weights[field] * docs_compressed_normed.dot(query_vec)
+        
+    return np.argsort(-sum)
 
 
-def filter(df, unwanted, allergies, time): # boolean not search
+def svd_maker(field):
+    vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .9, min_df = 2)
+    td_matrix = vectorizer.fit_transform(df[field].to_list())
+
+    # word_to_index = vectorizer.vocabulary_
+    # index_to_word = {i:t for t,i in word_to_index.items()}
+
+    docs_compressed, s, words_compressed = svds(td_matrix, k=100)
+    words_compressed = words_compressed.transpose()
+
+    # words_compressed_normed = normalize(words_compressed, axis = 1)
+    docs_compressed_normed = normalize(docs_compressed, axis = 1)
+
+    td_matrix_np = td_matrix.transpose().toarray()
+    td_matrix_np = normalize(td_matrix_np)
+
+    return (vectorizer, words_compressed, docs_compressed_normed)
+
+field_to_svds = { # must be under svd_maker()
+    "dishname": svd_maker("dishname"),
+    "ingredientparts": svd_maker("ingredientparts"),
+    "keywords": svd_maker("keywords"),
+    "detail": svd_maker("detail")
+}
+
+field_to_weights = {
+    "dishname": 4,
+    "ingredientparts": 3,
+    "keywords": 2,
+    "detail": 1,
+}
+
+def filter(df, unwanted, allergies, time): # boolean not search ??
     if len(unwanted) != 0:
         df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
 
@@ -90,16 +134,14 @@ def filter(df, unwanted, allergies, time): # boolean not search
     if time != 0:
         df = df[df["time"] <= time]
 
-    df = df.sort_values(by="reviewcount", ascending=False)
-
-    return df.values[:15]
+    return df
 
 
 def ingredient_distance(sources, targets):
 
     for source in sources:
         for target in targets:
-            if distance(source, target) < 3:
+            if distance(source, target) < 3: # 3 is edit threshold
                 return False
     return True
 
@@ -131,7 +173,7 @@ def home():
 
 @app.route("/recipes")
 def search():
-    request.args.get("time")
+
     dishname = str(request.args.get("dishname")).lower().strip()
 
     unwanted = str(request.args.get("unwanted")).lower().strip()
@@ -141,8 +183,8 @@ def search():
     allergies = str(request.args.get("allergies")).strip().split()
 
     time = int(request.args.get("time"))
-
-    return sql_search(dishname, unwanted, allergies, time)
+    
+    return svd_search(dishname, unwanted, allergies, time)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)
