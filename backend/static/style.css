@@ -221,6 +221,11 @@ header h1 {
     border: 1px solid #fefefe;
 }
 
+#time {
+    width: 40px;
+    margin-left: 4px;
+}
+
 /* The Modal (background) */
 #recipe-modal {
     display: none; /* Hidden by default */

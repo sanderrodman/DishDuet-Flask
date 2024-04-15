@@ -30,8 +30,7 @@
                 <div>
                     <div class="flex" id="unwanted-box">
                         <label for="unwanted">What to Avoid</label>
-                        <input type="text" placeholder="mushrooms..." class="mainLoginInput" 
-                            id="unwanted">
+                        <input type="text" placeholder="mushrooms..." class="mainLoginInput" id="unwanted">
                     </div>
                 </div>
             </div>
@@ -58,7 +57,7 @@
                     <div class="time_constraint_container">
                         <h3>Cook Time</h3>
 
-                        <label class="time_constraint_container">Max Time:<input type="text" name="time-type" value="60"></label>
+                        <label class="time_constraint_container">Max Minutes:<input id="time" type="number" name="time-type" value="60"></label>
                     </div>
                     <button id="search" onclick="filterText()">search</button>
                 </div>
@@ -110,7 +109,7 @@
                     <div class="flex star">
                         ${star(rating, reviewcount)}
                     </div>
-                    <ul>${printIngredients(ingredients.split(" "))}</ul>
+                    <ul>${printIngredients(ingredients)}</ul>
                     <strong>${time} min</strong>
                 </div>
                 <img src="${img}" alt="${dishname}">
@@ -144,12 +143,12 @@
                     <div class="flex star">
                         ${star(rating, reviewcount)}
                     </div>
-                    <ul>${printIngredients(ingredients.split(" "))}</ul> 
+                    <ul>${printIngredients(ingredients)}</ul> 
                 </div>
                 <p>Time: ${time}</p>
                 <h3>Instructions</h3>
                 <div>
-                    <ol>${printIngredients(instructions.split(" "))}</ol>
+                    <ol>${printIngredients(instructions)}</ol>
                 </div>
             </div>
             `
@@ -177,7 +176,9 @@
             }
 
             time = document.getElementsByName("time-type")[0].value;
-  
+            
+            var inputElements = document.getElementsByName("allergy-type");
+
             fetch("/recipes?" + new URLSearchParams({
 
                 dishname: document.getElementById("filter-text-val").value,

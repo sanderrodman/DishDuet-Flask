@@ -5,7 +5,6 @@ from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import numpy as np
 import pandas as pd
-import sklearn as sk
 
 import matplotlib.pyplot as plt
 from scipy.sparse.linalg import svds
@@ -65,32 +64,41 @@ keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecate
 
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection)
 
-def svd_search(query, unwanted, allergies, time):
-    
-    args = cossim_sum_args(query)
+df["ingredientparts_str"] = df["ingredientparts"].apply(lambda x : str(x).replace(',', ''))
+df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) #could be done better
 
-    results = filter(df.iloc[args], unwanted, allergies, time).iloc[:15].values.tolist() # 15 results
+df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
+df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
+
+def svd_search(query, unwanted, allergies, time, r=15):
+    print(unwanted)
+    sum = cossim_sum(query) - cossim_sum(unwanted)
+
+    args = np.argsort(-sum)
+
+    results = filter(df.iloc[args], unwanted, allergies, time).iloc[:r].values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
 # cosine similarity
-def cossim_sum_args(query):
+def cossim_sum(query):
 
     sum = 0
-    for field in field_to_svds:
+    for svd, weight in field_to_svds_and_weights:
 
-        vectorizer, words_compressed, docs_compressed_normed = field_to_svds[field]
+        vectorizer, words_compressed, docs_compressed_normed = svd
 
         query_tfidf = vectorizer.transform([query]).toarray()
 
         query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
 
-        sum += field_to_weights[field] * docs_compressed_normed.dot(query_vec)
-        
-    return np.argsort(-sum)
+        sum += weight * docs_compressed_normed.dot(query_vec)
+    
+    return sum
 
 
 def svd_maker(field):
+        
     vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .9, min_df = 2)
     td_matrix = vectorizer.fit_transform(df[field].to_list())
 
@@ -108,19 +116,13 @@ def svd_maker(field):
 
     return (vectorizer, words_compressed, docs_compressed_normed)
 
-field_to_svds = { # must be under svd_maker()
-    "dishname": svd_maker("dishname"),
-    "ingredientparts": svd_maker("ingredientparts"),
-    "keywords": svd_maker("keywords"),
-    "detail": svd_maker("detail")
-}
+field_to_svds_and_weights = ( # must be under svd_maker()
+    (svd_maker("dishname"), 4),
+    (svd_maker("ingredientparts_str"), 3),
+    (svd_maker("keywords_str"), 3),
+    (svd_maker("detail"), 3),
+)
 
-field_to_weights = {
-    "dishname": 4,
-    "ingredientparts": 3,
-    "keywords": 2,
-    "detail": 1,
-}
 
 def filter(df, unwanted, allergies, time): # boolean not search ??
     if len(unwanted) != 0:
@@ -176,9 +178,10 @@ def search():
 
     dishname = str(request.args.get("dishname")).lower().strip()
 
-    unwanted = str(request.args.get("unwanted")).lower().strip()
+    # unwanted = str(request.args.get("unwanted")).lower().strip() old unwanted, save for now
+    # unwanted = unwanted.split(",") if "," in unwanted else unwanted.split()
 
-    unwanted = unwanted.split(",") if "," in unwanted else unwanted.split()
+    unwanted = str(request.args.get("unwanted")).lower().strip()
 
     allergies = str(request.args.get("allergies")).strip().split()
 
