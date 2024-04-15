@@ -71,12 +71,12 @@ df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '
 df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
 
 def svd_search(query, unwanted, allergies, time, r=15):
-    print(unwanted)
+
     sum = cossim_sum(query) - cossim_sum(unwanted)
 
     args = np.argsort(-sum)
 
-    results = filter(df.iloc[args], unwanted, allergies, time).iloc[:r].values.tolist()
+    results = filter(df.iloc[args], allergies, time).iloc[:r].values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
@@ -124,9 +124,9 @@ field_to_svds_and_weights = ( # must be under svd_maker()
 )
 
 
-def filter(df, unwanted, allergies, time): # boolean not search ??
-    if len(unwanted) != 0:
-        df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
+def filter(df, allergies, time): # boolean not search ??
+    # if len(unwanted) != 0:
+    #     df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
 
     if len(allergies) !=0:
         for allergie in allergies:
