@@ -1,5 +1,6 @@
 import json
 import os
+from typing import assert_type
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
@@ -7,9 +8,13 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+
 from scipy.sparse.linalg import svds
+
 from sklearn.preprocessing import normalize
+
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 try: 
     from credentials import LOCAL_MYSQL_USER_PASSWORD
@@ -62,7 +67,7 @@ allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + al
 keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
             "ingredientparts","aggregatedrating","reviewcount","calories", "instructions","images"]
 
-df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection)
+df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
 df["ingredientparts_str"] = df["ingredientparts"].apply(lambda x : str(x).replace(',', ''))
 df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) #could be done better
@@ -70,79 +75,95 @@ df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) #c
 df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
 df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
 
-def svd_search(query, unwanted, allergies, time, r=15):
+vocab_vectorizer = CountVectorizer(stop_words = 'english', max_df = .9, min_df = 3)
+vocab_matrix = vocab_vectorizer.fit_transform(df[["dishname", "keywords_str", "ingredientparts_str", "detail"]].values.reshape(-1,).tolist())
+vocabulary = vocab_vectorizer.vocabulary_
+term_to_doc = {term : i for i, term in enumerate(vocabulary)}
 
-    sum = cossim_sum(query) - cossim_sum(unwanted)
+def svd_maker():
 
-    args = np.argsort(-sum)
+    vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
+
+    td_matrix = 0 # matrix not a number
+    for field, weight in [("dishname", 4), ("keywords_str", 3), ("ingredientparts_str", 2), ("detail", 1)]:
+
+        td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
+
+    docs_compressed, s, words_compressed = svds(td_matrix, k=200)
+
+    words_compressed = words_compressed.transpose() # type: ignore
+
+    docs_compressed_normed = normalize(docs_compressed, axis = 1) # type: ignore
+
+    return (vectorizer, words_compressed, docs_compressed_normed, s)
+
+vectorizer, words_compressed, docs_compressed_normed, s = svd_maker()
+
+
+# plt.plot(s[::-1])
+# plt.xlabel("Singular value number")
+# plt.ylabel("Singular value")
+# plt.show()
+
+
+def svd_search(query, unwanted, allergies, time, r=20):
+
+    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.log10(df["aggregatedrating"] * df["reviewcount"])
+
+    args = np.argsort(-scores) # type: ignore
 
     results = filter(df.iloc[args], allergies, time).iloc[:r].values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
+
 # cosine similarity
 def cossim_sum(query):
 
-    sum = 0
-    for svd, weight in field_to_svds_and_weights:
+    scores = np.zeros(df.shape[0])
 
-        vectorizer, words_compressed, docs_compressed_normed = svd
+    query_tfidf = vectorizer.transform([query]).toarray() # type: ignore
 
-        query_tfidf = vectorizer.transform([query]).toarray()
+    query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze() # type: ignore
 
-        query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
-
-        sum += weight * docs_compressed_normed.dot(query_vec)
+    scores = docs_compressed_normed.dot(query_vec) # type: ignore
     
-    return sum
+    return scores
 
 
-def svd_maker(field):
-        
-    vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .9, min_df = 2)
-    td_matrix = vectorizer.fit_transform(df[field].to_list())
-
-    # word_to_index = vectorizer.vocabulary_
-    # index_to_word = {i:t for t,i in word_to_index.items()}
-
-    docs_compressed, s, words_compressed = svds(td_matrix, k=100)
-    words_compressed = words_compressed.transpose()
-
-    # words_compressed_normed = normalize(words_compressed, axis = 1)
-    docs_compressed_normed = normalize(docs_compressed, axis = 1)
-
-    td_matrix_np = td_matrix.transpose().toarray()
-    td_matrix_np = normalize(td_matrix_np)
-
-    return (vectorizer, words_compressed, docs_compressed_normed)
-
-field_to_svds_and_weights = ( # must be under svd_maker()
-    (svd_maker("dishname"), 4),
-    (svd_maker("ingredientparts_str"), 3),
-    (svd_maker("keywords_str"), 3),
-    (svd_maker("detail"), 3),
-)
+# field_to_svds_and_weights = ( # must be under svd_maker()
+#     (svd_maker("dishname"), 4),
+#     (svd_maker("keywords_str"), 3),
+#     (svd_maker("ingredientparts_str"), 2),
+#     (svd_maker("detail"), 1),
+# )
 
 
-def filter(df, allergies, time): # boolean not search ??
+def filter(df_filter, allergies, time): # boolean not search
     # if len(unwanted) != 0:
     #     df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
 
-    if len(allergies) !=0:
-        for allergie in allergies:
-            df = df[df["ingredientparts"].apply(lambda x : \
-                ingredient_distance(allergies_dic[allergie], x))]
+    # if len(allergies) != 0:
+    #     for category in allergies:
+    #         for allergie in allergies_dic[category]:
+    #             if allergie in term_to_doc:
+    #                 for row in vocab_matrix.getcol(term_to_doc[allergie]): # type: ignore
+    #                     if row > 1:
+    #                         df_filter = df_filter.drop(term_to_doc[allergie]) WORK IN PROGRESS
 
-    if time != 0:
-        df = df[df["time"] <= time]
+            # df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(allergies_dic[allergie], x))]
 
-    return df
+    if time < 60 and time > 0:
+        df_filter = df_filter[df_filter["time"] <= time]
+
+    return df_filter
 
 
 def ingredient_distance(sources, targets):
 
     for source in sources:
         for target in targets:
+
             if distance(source, target) < 3: # 3 is edit threshold
                 return False
     return True
@@ -185,7 +206,7 @@ def search():
 
     allergies = str(request.args.get("allergies")).strip().split()
 
-    time = int(request.args.get("time"))
+    time = int(request.args.get("time")) # type: ignore
     
     return svd_search(dishname, unwanted, allergies, time)
 

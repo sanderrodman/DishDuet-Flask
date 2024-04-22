@@ -78,6 +78,13 @@
     <script>
 
         function star(rating, reviewcount) {
+            if (4.8 <= rating) {
+                return `<img src="{{ url_for('static', filename='images/star.svg') }}">
+                <img src="{{ url_for('static', filename='images/star.svg') }}">
+                <img src="{{ url_for('static', filename='images/star.svg') }}">
+                <img src="{{ url_for('static', filename='images/star.svg') }}">
+                <img src="{{ url_for('static', filename='images/star.svg') }}">`+ `<p>(${reviewcount})</p>`
+            }
                 
             img = ``
             i = 1
