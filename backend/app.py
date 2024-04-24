@@ -1,6 +1,5 @@
 import json
 import os
-from typing import assert_type
 from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
