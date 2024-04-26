@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href='https://fonts.googleapis.com/css?family=Inter' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
 
@@ -17,11 +18,13 @@
             <h1 class="color-2">🥙 Dish</h1>
             <h1 class="color-1">Dash 🥘</h1>
         </header>
+        
         <div class="small-aside">
+            <h2 id="slogan">... Recipes in a flash!</h2>
             <div class="top-text">
                 <div>
-                    <label for="filter-text-val">Search For Recipes</label>
-                    <div class="input-box" onclick="sendFocus()">
+                    <label for="filter-text-val">Search For Recipes *</label>
+                    <div id="input-box" onclick="sendFocus()">
                         <img alt="" src="{{ url_for('static', filename='images/mag.png') }}" />
                         <input type="text" placeholder="What's Cooking?" class="mainLoginInput" id="filter-text-val">
                     </div>
@@ -35,7 +38,7 @@
                 </div>
             </div>
             <div class="side_by_side">
-                <div class="allergen_container">
+                <div id="allergen_container">
                     <h3>Allergies</h3>
 
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
@@ -53,15 +56,13 @@
                     <label class="allergen_container"><input type="checkbox" name="allergy-type"
                             value="shellfish">Shellfish</label><br />
                 </div>
-                <div class="search flex">
-                    <div class="time_constraint_container">
-                        <h3>Cook Time</h3>
-
-                        <label class="time_constraint_container">Max Minutes:<input id="time" type="number" name="time-type" value="60"></label>
-                    </div>
-                    <button id="search" onclick="filterText()">search</button>
+                <div id="time-input" class="time_constraint_container">
+                    <h3>Cook Time</h3>
+                    <label class="time_constraint_container">Max Minutes:<input id="time" type="number" name="time-type" value="60"></label>
                 </div>
-
+            </div>
+            <div class="search-box">
+                <button id="search" onclick="filterText()">Search</button>
             </div>
         </div>
     </aside>
@@ -69,13 +70,34 @@
         <div id="answer-box">
         </div>
     </main>
-    <div id="recipe-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-        </div>
-    </div>
 
     <script>
+        var input = document.getElementById("input-box");
+        var input2 = document.getElementById("unwanted-box");
+        var input3 = document.getElementById("allergen_container");
+        var input4 = document.getElementById("time-input");
+        input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            filterText();
+        }
+        });
+        input2.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            filterText();
+        }
+        });
+        input3.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            filterText();
+        }
+        });
+        input4.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            filterText();
+        }
+        });
+        
+
 
         function star(rating, reviewcount) {
             if (4.8 <= rating) {
@@ -108,19 +130,23 @@
             }
 
 
-        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients) {
+        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, top_words) {
             return`
-            <div class='result flex'>
-                <div>
-                    <h3 id='recipe-name' class='recipe-title'>${dishname}</h3>
-                    <div class="flex star">
-                        ${star(rating, reviewcount)}
+            <a href = "https://www.food.com/recipe/${subpage}" class="result-link" target="_blank">
+                <div class='result flex'>
+                    <div>
+                        <h3 id='recipe-name' class='recipe-title'>${dishname}</h3>
+                        <div class="flex star">
+                            ${star(rating, reviewcount)}
+                        </div>
+                        <strong>${time} min</strong>
+                        <h3>Most relevant for ${top_words[0][0]}, ${top_words[0][1]}, ${top_words[0][2]}, ${top_words[0][3]}, ${top_words[0][4]}</h3>
+                        <ul>${printIngredients(ingredients)}</ul>
+                        <h3 id ='instructions'>Instructions</h3>
                     </div>
-                    <ul>${printIngredients(ingredients)}</ul>
-                    <strong>${time} min</strong>
+                    <img src="${img}" alt="${dishname}">
                 </div>
-                <img src="${img}" alt="${dishname}">
-            </div>`
+            </a>`
         }
 
 
@@ -139,27 +165,6 @@
             document.getElementById('filter-text-val').focus()
         }
 
-        // popup box that has the recipe. Pops up when the user clicks on the 
-        // title of the recipe.
-        function recipeBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, instructions) {
-            return `
-            <div class='result flex'>
-                <div>
-                    <img src="${img}" alt="${dishname}">
-                    <h2 class='recipe-title'>${dishname}</h2>
-                    <div class="flex star">
-                        ${star(rating, reviewcount)}
-                    </div>
-                    <ul>${printIngredients(ingredients)}</ul> 
-                </div>
-                <p>Time: ${time}</p>
-                <h3>Instructions</h3>
-                <div>
-                    <ol>${printIngredients(instructions)}</ol>
-                </div>
-            </div>
-            `
-        }
 
         function filterText() {
             document.body.scrollTop = document.documentElement.scrollTop = 0; // sends screen to top of page
@@ -199,40 +204,23 @@
             .then((data) => data.forEach(row => {
                 let tempDiv = document.createElement("div");
                 tempDiv.innerHTML = 
-                answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts);
-                console.log(row.images)
-                console.log(row.dishname)
+                answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts, row.subpage, row.top_words);
                 document.getElementById("answer-box").appendChild(tempDiv);
+            }));
    
 
-            }));
-
-            // Get the modal
-            var modal = document.getElementById("recipe-modal");
-
-            // Get the button that opens the modal
-            var btn = document.getElementById("recipe-name");
-
-            // Get the <span> element that closes the modal
-            var span = document.getElementsByClassName("close")[0];
-
-            // When the user clicks on the button, open the modal
-            btn.onclick = function() {
-                let tempDivRecipe = document.createElement("div");
-                tempDivRecipe.innerHTML = 
-                recipeBoxTemplate(row.dishname, row.aggregatedrating, 
-                row.reviewcount, row.images, row.time, row.ingredientparts, row.instructions, row.time);
-                document.getElementById("modal-content").appendChild(tempDivRecipe);
-                modal.style.display = "block";
-            }
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-            modal.style.display = "none";
-            }
         }
 
+    function handle(e){
+        if (e.key === "Enter"){
+            filterText();
+        }
+
+    }
+
     </script>
+
+
 </body>
 
 </html>

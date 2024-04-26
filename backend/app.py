@@ -63,8 +63,8 @@ allergies_dic = {
 }
 allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
-keys = ["dishname","time","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientparts","aggregatedrating","reviewcount","calories", "instructions","images"]
+keys = ["time","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
+            "ingredientparts","aggregatedrating","reviewcount","calories", "instructions","images", "subpage", "top_words"]
 
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
@@ -84,34 +84,41 @@ def svd_maker():
     vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
     td_matrix = 0 # matrix not a number
-    for field, weight in [("dishname", 4), ("keywords_str", 3), ("ingredientparts_str", 2), ("detail", 1)]:
+    for field, weight in [("dishname",2), ("keywords_str", 1), ("ingredientparts_str", 1), ("detail", 1)]:
 
         td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
-    docs_compressed, s, words_compressed = svds(td_matrix, k=200)
+    docs_compressed, s, words_compressed = svds(td_matrix, k=30) # k = 300
 
-    words_compressed = words_compressed.transpose() # type: ignore
+    words_compressed_normed = normalize(words_compressed.transpose(), axis = 1) # type: ignore
 
     docs_compressed_normed = normalize(docs_compressed, axis = 1) # type: ignore
 
-    return (vectorizer, words_compressed, docs_compressed_normed, s)
+    return (td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s)
 
-vectorizer, words_compressed, docs_compressed_normed, s = svd_maker()
-
-
-# plt.plot(s[::-1])
-# plt.xlabel("Singular value number")
-# plt.ylabel("Singular value")
-# plt.show()
+td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s = svd_maker()
 
 
-def svd_search(query, unwanted, allergies, time, r=20):
+def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
-    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.log10(df["aggregatedrating"] * df["reviewcount"])
-
+    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.emath.logn(100, df["aggregatedrating"] * df["reviewcount"]) 
+    
     args = np.argsort(-scores) # type: ignore
 
-    results = filter(df.iloc[args], allergies, time).iloc[:r].values.tolist()
+    top_td_matrix = td_matrix.toarray()[args] # type: ignore
+
+    top_words = []
+    for recipe in top_td_matrix:
+        print(np.argsort(recipe))
+        top_words.append(vocabulary[np.argsort(recipe)][:10])
+
+    df["top_words"] = top_words
+
+    df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
+
+    print(top_words)
+
+    results = filter(df_final.iloc[args], allergies, time, unwanted).iloc[:r].values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
@@ -123,7 +130,7 @@ def cossim_sum(query):
 
     query_tfidf = vectorizer.transform([query]).toarray() # type: ignore
 
-    query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze() # type: ignore
+    query_vec = normalize(np.dot(query_tfidf, words_compressed_normed)).squeeze() # type: ignore
 
     scores = docs_compressed_normed.dot(query_vec) # type: ignore
     
@@ -138,7 +145,8 @@ def cossim_sum(query):
 # )
 
 
-def filter(df_filter, allergies, time): # boolean not search
+def filter(df_filter, allergies, time, unwanted): # boolean not search
+
     # if len(unwanted) != 0:
     #     df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
 
@@ -148,9 +156,28 @@ def filter(df_filter, allergies, time): # boolean not search
     #             if allergie in term_to_doc:
     #                 for row in vocab_matrix.getcol(term_to_doc[allergie]): # type: ignore
     #                     if row > 1:
-    #                         df_filter = df_filter.drop(term_to_doc[allergie]) WORK IN PROGRESS
+    #                         df_filter = df_filter.drop(term_to_doc[allergie]) # WORK IN PROGRESS
 
-            # df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(allergies_dic[allergie], x))]
+    #         df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(allergies_dic[allergie], x))]
+    
+
+    # for category in allergies_dic:
+    #     allergies_set.update(allergies_dic[category])
+
+    if len(unwanted) != 0:
+        df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
+        # only does the restriction for the first output -> only run on top x number of results from the initial query?
+        
+    #    unwanted_set = set(unwanted)
+    #    df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(ingredient not in unwanted_set for ingredient in x))]
+
+
+    if len(allergies) != 0:
+        allergies_set = set()
+    # if len(allergies_set) != 0:
+    #     for allergie in allergies_dic[category]:
+    #              if allergie in term_to_doc:
+    #                  df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(allergies not in [ingredient]))]
 
     if time < 60 and time > 0:
         df_filter = df_filter[df_filter["time"] <= time]
