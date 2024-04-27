@@ -164,20 +164,24 @@ def filter(df_filter, allergies, time, unwanted): # boolean not search
     # for category in allergies_dic:
     #     allergies_set.update(allergies_dic[category])
 
-    if len(unwanted) != 0:
-        df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
+    # if len(unwanted) != 0:
+    #     df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
         # only does the restriction for the first output -> only run on top x number of results from the initial query?
         
     #    unwanted_set = set(unwanted)
     #    df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(ingredient not in unwanted_set for ingredient in x))]
 
 
-    if len(allergies) != 0:
-        allergies_set = set()
+    # if len(allergies) != 0:
+    #     allergies_set = set()
     # if len(allergies_set) != 0:
     #     for allergie in allergies_dic[category]:
     #              if allergie in term_to_doc:
     #                  df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(allergies not in [ingredient]))]
+
+    if unwanted:
+        unwanted_set = set(unwanted.split(", "))
+        df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing in unwanted_set for ing in ingredients))]
 
     if time < 60 and time > 0:
         df_filter = df_filter[df_filter["time"] <= time]
