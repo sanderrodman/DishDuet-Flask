@@ -181,7 +181,7 @@ def filter(df_filter, allergies, time, unwanted): # boolean not search
 
     if unwanted:
         unwanted_set = set(unwanted.split(", "))
-        df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing in unwanted_set for ing in ingredients))]
+        df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing.lower() in unwanted_set for ing in ingredients))]
 
     if time < 60 and time > 0:
         df_filter = df_filter[df_filter["time"] <= time]
