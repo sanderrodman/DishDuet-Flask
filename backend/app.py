@@ -53,7 +53,7 @@ allergies_dic = {
     "dairy": ["butter", "ghee", "casein", "cheese", "cream", "goat cheese",
               "milk", "yogurt", "custard", "sour cream", "ice cream",
               "whipped cream", "blue cheese", "cottage cheese", "whole milk", 
-              "half and half", "whipped cream"],
+              "half and half", "whipped cream", "skim milk"],
     "egg": ["egg", "quail egg", "duck egg"],
     "gluten": ["cereal", "rye", "barley", "oats", "flour", "pasta",
                "bagel", "beer", "wheat"],
@@ -180,12 +180,12 @@ def filter(df_filter, allergies, time, unwanted): # boolean not search
         df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing.lower() in unwanted_set for ing in ingredients))]
         # kinda works, only first few results
 
-    if len(allergies) != 0:
-        allergen_set = set()
-        for allergy in allergies:
-            if allergy in allergies_dic:
-                allergen_set.update(allergies_dic[allergy])
-        df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing in allergen_set for ing in ingredients))]
+    # if len(allergies) != 0:
+    #     allergen_set = set()
+    #     for allergy in allergies:
+    #         if allergy in allergies_dic:
+    #             allergen_set.update(allergies_dic[allergy])
+    #     df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing in allergen_set for ing in ingredients))]
 
     if time < 60 and time > 0:
         df_filter = df_filter[df_filter["time"] <= time]
