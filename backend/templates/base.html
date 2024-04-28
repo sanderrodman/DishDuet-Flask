@@ -130,31 +130,48 @@
             }
 
 
-        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, top_words) {
+        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, desc, calories) {
             return`
-            <a href = "https://www.food.com/recipe/${subpage}" class="result-link" target="_blank">
-                <div class='result flex'>
-                    <div>
-                        <h3 id='recipe-name' class='recipe-title'>${dishname}</h3>
-                        <div class="flex star">
-                            ${star(rating, reviewcount)}
-                        </div>
-                        <strong>${time} min</strong>
-                        <h3>Most relevant for ${top_words[0][0]}, ${top_words[0][1]}, ${top_words[0][2]}, ${top_words[0][3]}, ${top_words[0][4]}</h3>
-                        <ul>${printIngredients(ingredients)}</ul>
-                        <h3 id ='instructions'>Instructions</h3>
+            <div class='result flex'>
+                <div>
+                    <a href = "https://www.food.com/recipe/${subpage}" target="_blank">
+                        <h3 class='recipe-title'>${dishname}</h3>
+                    </a>
+                    <div class="flex star">
+                        ${star(rating, reviewcount)}
                     </div>
-                    <img src="${img}" alt="${dishname}">
+                    <div class="flex sub-header" >
+                        <p><strong>${time} min</strong></p>
+            
+                        <p><strong>${calories} calories per serving</strong></p>
+                    </div>
+                    
+                    <ul class="flex ingredients">
+                        <li><strong>Ingredients:</strong></li>
+                        ${printIngredients(ingredients)}
+                    </ul>
+
+                    <p>${desc}</p>
                 </div>
-            </a>`
+                <a href = "https://www.food.com/recipe/${subpage}" target="_blank"><img class="photo" src="${img}" alt="${dishname}"></a>
+            </div>`
         }
+
+        // <h3>Most relevant for ${top_words[0][0]}, ${top_words[0][1]}, ${top_words[0][2]}, ${top_words[0][3]}, ${top_words[0][4]}</h3>
 
 
         function printIngredients(ingredients) {
-
-            if (ingredients.length != 0) {
+            if (ingredients.length == 1) {
+                return `<li><strong>${ingredients[0]}</strong></li>`
+            }
+            else if (ingredients.length != 0) {
                 const firstElement = ingredients.shift();
-                return `<li>${firstElement}</li>` + printIngredients(ingredients);
+                if (ingredients.length == 1) {
+                    return `<li><strong>${firstElement}</strong>, and</li>` + printIngredients(ingredients);
+                }
+                else {
+                    return `<li><strong>${firstElement}</strong>,</li>` + printIngredients(ingredients);
+                }
             }
             else {
                 return ``;
@@ -204,10 +221,9 @@
             .then((data) => data.forEach(row => {
                 let tempDiv = document.createElement("div");
                 tempDiv.innerHTML = 
-                answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts, row.subpage, row.top_words);
+                answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts, row.subpage, row.detail, row.calories);
                 document.getElementById("answer-box").appendChild(tempDiv);
             }));
-   
 
         }
 

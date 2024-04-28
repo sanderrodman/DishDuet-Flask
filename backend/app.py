@@ -64,7 +64,7 @@ allergies_dic = {
 allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
 keys = ["time","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientparts","aggregatedrating","reviewcount","calories", "instructions","images", "subpage", "top_words"]
+            "ingredientparts","aggregatedrating","reviewcount","calories","instructions","images","subpage"]
 
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
@@ -88,11 +88,11 @@ def svd_maker():
 
         td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
-    docs_compressed, s, words_compressed = svds(td_matrix, k=30) # k = 300
+    docs_compressed, s, words_compressed = svds(td_matrix, k=300)
 
-    words_compressed_normed = normalize(words_compressed.transpose(), axis = 1) # type: ignore
+    words_compressed_normed = normalize(words_compressed.transpose()) # type: ignore
 
-    docs_compressed_normed = normalize(docs_compressed, axis = 1) # type: ignore
+    docs_compressed_normed = normalize(docs_compressed) # type: ignore
 
     return (td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s)
 
@@ -105,21 +105,21 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
     
     args = np.argsort(-scores) # type: ignore
 
-    top_td_matrix = td_matrix.toarray()[args] # type: ignore
+    # top_td_matrix = td_matrix.toarray()[args] # type: ignore
 
-    top_words = []
-    for recipe in top_td_matrix:
-        print(np.argsort(recipe))
-        top_words.append(vocabulary[np.argsort(recipe)][:10])
+    # top_words = []
+    # for recipe in top_td_matrix:
+    #     print(np.argsort(recipe))
+    #     top_words.append(vocabulary[np.argsort(recipe)][:10])
 
-    df["top_words"] = top_words
+    # df["top_words"] = top_words
 
     df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
 
-    print(top_words)
-
     results = filter(df_final.iloc[args], allergies, time, unwanted).iloc[:r].values.tolist()
-
+    assert len(results[0]) == len(keys)
+    print("results", len(results[0]))
+    print("keys", len(keys))
     return json.dumps([dict(zip(keys,i)) for i in results])
 
 
