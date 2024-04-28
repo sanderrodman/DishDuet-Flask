@@ -84,42 +84,33 @@ def svd_maker():
     vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
     td_matrix = 0 # matrix not a number
-    for field, weight in [("dishname", 3), ("keywords_str", 1), ("ingredientparts_str", 2), ("detail", 1)]:
+    for field, weight in [("dishname", 3), ("keywords_str", 1), ("ingredientparts_str", 1), ("detail", 1)]:
 
         td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
     docs_compressed, s, words_compressed = svds(td_matrix, k=300)
 
-    words_compressed_normed = normalize(words_compressed.transpose()) # type: ignore
+    words_compressed = normalize(words_compressed.transpose()) # type: ignore
 
-    docs_compressed_normed = normalize(docs_compressed) # type: ignore
+    docs_compressed = normalize(docs_compressed) # type: ignore
 
-    return (td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s)
+    return (td_matrix, vectorizer, words_compressed, docs_compressed, s)
 
 td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s = svd_maker()
 
 
 def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
-    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.emath.logn(100, df["aggregatedrating"] * df["reviewcount"]) 
+    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.emath.logn(1000, df["aggregatedrating"] * df["reviewcount"]) 
     
     args = np.argsort(-scores) # type: ignore
-
-    # top_td_matrix = td_matrix.toarray()[args] # type: ignore
-
-    # top_words = []
-    # for recipe in top_td_matrix:
-    #     print(np.argsort(recipe))
-    #     top_words.append(vocabulary[np.argsort(recipe)][:10])
-
-    # df["top_words"] = top_words
-
+    
     df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
 
-    results = filter(df_final.iloc[args], allergies, time, unwanted).iloc[:r].values.tolist()
-    assert len(results[0]) == len(keys)
-    print("results", len(results[0]))
-    print("keys", len(keys))
+    print(np.max(scores), np.emath.logn(1000, df_final.iloc[args].iloc[0]["aggregatedrating"] * df_final.iloc[args].iloc[0]["reviewcount"]))
+
+    results = filter(df_final.iloc[args], allergies, time).iloc[:r].values.tolist()
+
     return json.dumps([dict(zip(keys,i)) for i in results])
 
 
@@ -137,104 +128,42 @@ def cossim_sum(query):
     return scores
 
 
-# field_to_svds_and_weights = ( # must be under svd_maker()
-#     (svd_maker("dishname"), 4),
-#     (svd_maker("keywords_str"), 3),
-#     (svd_maker("ingredientparts_str"), 2),
-#     (svd_maker("detail"), 1),
-# )
+def filter(df_filter, allergies, time): # boolean not search
 
+    if len(allergies) != 0:
 
-def filter(df_filter, allergies, time, unwanted): # boolean not search
+        for allergie_category in allergies:
 
-    # if len(unwanted) != 0:
-    #     df = df[df["ingredientparts"].apply(lambda x : ingredient_distance(unwanted, x))]
-
-    # if len(allergies) != 0:
-    #     for category in allergies:
-    #         for allergie in allergies_dic[category]:
-    #             if allergie in term_to_doc:
-    #                 for row in vocab_matrix.getcol(term_to_doc[allergie]): # type: ignore
-    #                     if row > 1:
-    #                         df_filter = df_filter.drop(term_to_doc[allergie]) # WORK IN PROGRESS
-
-    #         df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : ingredient_distance(allergies_dic[allergie], x))]
-    
-
-    # for category in allergies_dic:
-    #     allergies_set.update(allergies_dic[category])
-        
-    #    unwanted_set = set(unwanted)
-    #    df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(ingredient not in unwanted_set for ingredient in x))]
-
-
-    # if len(allergies) != 0:
-    #     allergies_set = set()
-    # if len(allergies_set) != 0:
-    #     for allergie in allergies_dic[category]:
-    #              if allergie in term_to_doc:
-    #                  df_filter = df_filter[df_filter["ingredientparts"].apply(lambda x : all(allergies not in [ingredient]))]
-
-    if unwanted:
-        unwanted_set = set(unwanted.split(", "))
-        df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing.lower() in unwanted_set for ing in ingredients))]
-        # kinda works, only first few results
-
-    # if len(allergies) != 0:
-    #     allergen_set = set()
-    #     for allergy in allergies:
-    #         if allergy in allergies_dic:
-    #             allergen_set.update(allergies_dic[allergy])
-    #     df_filter = df_filter[~df_filter["ingredientparts"].apply(lambda ingredients: any(ing in allergen_set for ing in ingredients))]
-
+            df_filter = df_filter[df_filter["ingredientparts"].apply(lambda ingredients : filterIngredients(allergie_category, ingredients))]
+                                  
     if time < 60 and time > 0:
         df_filter = df_filter[df_filter["time"] <= time]
 
     return df_filter
 
 
-def ingredient_distance(sources, targets):
+def filterIngredients(allergie_category, ingredients):
+    
+    for ingredient in ingredients:
+        
+        for allergie_str in allergies_dic[allergie_category]:
 
-    for source in sources:
-        for target in targets:
+            if (allergie_str in ingredient.lower()):
 
-            if distance(source, target) < 3: # 3 is edit threshold
                 return False
+    
     return True
-
-
-def distance(source, target):
-    
-    d = np.zeros((len(source), len(target)))
-
-    for i in range(d.shape[0]):
-        d[i,0] = i
-    
-    for j in range(d.shape[1]):
-        d[0,j] = j
-
-    for i in range(d.shape[0]):
-
-        for j in range(d.shape[1]):
-
-            subcost = 0 if source[i] == target[j] else 1
-
-            d[i, j] = np.min(np.array([d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + subcost]))
-
-    return d[i, j]
 
 
 @app.route("/")
 def home():
     return render_template('base.html',title="sample html")
 
+
 @app.route("/recipes")
 def search():
 
     dishname = str(request.args.get("dishname")).lower().strip()
-
-    # unwanted = str(request.args.get("unwanted")).lower().strip() old unwanted, save for now
-    # unwanted = unwanted.split(",") if "," in unwanted else unwanted.split()
 
     unwanted = str(request.args.get("unwanted")).lower().strip()
 
