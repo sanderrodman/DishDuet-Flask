@@ -190,39 +190,44 @@ header h1 {
 .result {
     justify-content: space-between;
     margin-bottom: 50px;
-    width: 100%;
-}
-
-.result-link {
-    text-decoration: none;
-    color: black;
+    max-width: 100%;
+    background-color: palegoldenrod;
+    border-radius: 10px;
 }
 
 .star {
    justify-content: flex-start;
    border: none;
+   text-align: center;
+   align-items: center;
 }
 
 .star img {
-    width: 20px;
-    padding: 1px;
-}
-
-.star p {
-    margin: 0px;
-    padding: 2px 0px 0px 3px;
-}
-
-.result img:not(.star img) {
-    max-width: 300px;
-    height: 300px;
-    border-radius: 10px;
-    border: 2px solid black;
+    width: 25px;
+    padding: 0px;
 }
 
 .result p {
     margin-right: 50px;
-} 
+}
+
+.text {
+    padding: 10px 20px 10px 10px;
+    flex-basis: 60%;
+}
+
+.text h3 {
+    padding-top: 0px;
+}
+
+.text a {
+    width: fit-content;
+    display: block;
+}
+
+.text p {
+    margin: 16px 0px 0px 0px;
+}
 
 .search-box {
     width: 100%;
@@ -275,14 +280,27 @@ header h1 {
 }
 
 .photo {
-    margin-left: 1em;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    vertical-align: bottom;
+}
+
+.imglink {
+    flex-basis: 40%;
+    height: fit-content;
 }
 
 .sub-header {
-    column-gap: 3em;
+    text-align: center;
+    align-items: center;
+    justify-content: space-between;
+    width: 80%;
 }
 
-.sub-header p {
+.result h3 {
     margin: 0px;
-    padding-top: 15px;
+    font-size: 150%;
 }

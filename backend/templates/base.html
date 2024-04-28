@@ -105,56 +105,55 @@
                 <img src="{{ url_for('static', filename='images/star.svg') }}">
                 <img src="{{ url_for('static', filename='images/star.svg') }}">
                 <img src="{{ url_for('static', filename='images/star.svg') }}">
-                <img src="{{ url_for('static', filename='images/star.svg') }}">`+ `<p>(${reviewcount})</p>`
+                <img src="{{ url_for('static', filename='images/star.svg') }}">`+ `&nbsp;${reviewcount}`
             }
                 
             img = ``
             i = 1
 
             while (i < rating) {
-                img += `<img src="{{ url_for('static', filename='images/star.svg') }}">\n`
+                img += `<img alt="" src="{{ url_for('static', filename='images/star.svg') }}">\n`
                 i += 1
             }
 
             if (i - rating <= 0.5) {
-                img += `<img src="{{ url_for('static', filename='images/half.svg') }}">\n`
+                img += `<img alt="" src="{{ url_for('static', filename='images/half.svg') }}">\n`
                 i += 1
             }
 
             while (i <= 5) {
-                img += `<img src="{{ url_for('static', filename='images/no.svg') }}">\n`
+                img += `<img alt="" src="{{ url_for('static', filename='images/no.svg') }}">\n`
                 i += 1
             }
 
-            return img + `<p>(${reviewcount})</p>`
+            return img + `&nbsp;${reviewcount}`
             }
 
 
         function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, desc, calories) {
             return`
-            <div class='result flex'>
-                <div>
-                    <a href = "https://www.food.com/recipe/${subpage}" target="_blank">
-                        <h3 class='recipe-title'>${dishname}</h3>
-                    </a>
+            <div class="text">
+                <a href = "https://www.food.com/recipe/${subpage}" target="_blank">
+                    <h3 class='recipe-title'>${dishname}</h3>
+                </a>
+                <div class="flex sub-header">
                     <div class="flex star">
                         ${star(rating, reviewcount)}
                     </div>
-                    <div class="flex sub-header" >
-                        <p><strong>${time} min</strong></p>
-            
-                        <p><strong>${calories} calories per serving</strong></p>
-                    </div>
+                    <strong>${time} min</strong>
+        
+                    <strong>${calories} calories</strong>
                     
-                    <ul class="flex ingredients">
-                        <li><strong>Ingredients:</strong></li>
-                        ${printIngredients(ingredients)}
-                    </ul>
-
-                    <p>${desc}</p>
                 </div>
-                <a href = "https://www.food.com/recipe/${subpage}" target="_blank"><img class="photo" src="${img}" alt="${dishname}"></a>
-            </div>`
+      
+                <ul class="flex ingredients">
+                    <li><strong>Ingredients:</strong></li>
+                    ${printIngredients(ingredients)}
+                </ul>
+
+                <p>${desc}</p>
+            </div>
+            <a class="imglink" href = "https://www.food.com/recipe/${subpage}" target="_blank"><img class="photo" src="${img}" alt="${dishname}"></a>`
         }
 
         // <h3>Most relevant for ${top_words[0][0]}, ${top_words[0][1]}, ${top_words[0][2]}, ${top_words[0][3]}, ${top_words[0][4]}</h3>
@@ -220,6 +219,7 @@
             .then((response) => response.json())
             .then((data) => data.forEach(row => {
                 let tempDiv = document.createElement("div");
+                tempDiv.className = "result flex";
                 tempDiv.innerHTML = 
                 answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts, row.subpage, row.detail, row.calories);
                 document.getElementById("answer-box").appendChild(tempDiv);
