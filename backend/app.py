@@ -101,12 +101,12 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
     rating_scores = df["aggregatedrating"] * np.log(df["reviewcount"] + 1)
     
-    query_scores = cossim_sum(query) - cossim_sum(unwanted)
+    query_scores = cossim_sum(query) - cossim_sum(unwanted) * 2
 
     scores = 0.7 * normalize([query_scores])[0] + 0.3 * normalize([rating_scores.to_numpy()])[0]
     
-    args = np.argsort(-scores.flatten()) # type: ignore
- 
+    args = np.argsort(-scores.flatten())
+
     df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
 
     results = filter(df_final.iloc[args], allergies, time).iloc[:r].values.tolist()
