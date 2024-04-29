@@ -76,7 +76,7 @@ df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '
 
 
 vocab_vectorizer = CountVectorizer(stop_words = 'english', max_df = .9, min_df = 3)
-vocab_matrix = vocab_vectorizer.fit_transform(df[["dishname", "keywords_str", "ingredientparts_str", "detail"]].values.reshape(-1,).tolist())
+vocab_matrix = vocab_vectorizer.fit_transform(df[["dishname", "keywords_str", "ingredientparts_str", "detail", "instructions"]].values.reshape(-1,).tolist())
 vocabulary = vocab_vectorizer.vocabulary_
 
 
@@ -84,7 +84,7 @@ vocabulary = vocab_vectorizer.vocabulary_
 vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
 td_matrix = 0 # matrix not a number
-for field, weight in [("dishname", 0.4), ("keywords_str", 0.2), ("ingredientparts_str", 0.2), ("detail", 0.2)]:
+for field, weight in [("dishname", 0.4), ("keywords_str", 0.2), ("ingredientparts_str", 0.2), ("detail", 0.1), ("instructions", 0.1)]:
 
     td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
@@ -97,13 +97,13 @@ words_compressed_normed = normalize(words_compressed) # type: ignore
 docs_compressed_normed = normalize(docs_compressed) # type: ignore
 
 
+rating_scores = normalize([pd.Series(df["aggregatedrating"] * np.log(df["reviewcount"] + 1)).to_numpy()])[0]
+print(type(rating_scores))
 def svd_search(query, unwanted, allergies, time, r=20): # runs on search
-
-    rating_scores = df["aggregatedrating"] * np.log(df["reviewcount"] + 1)
     
     query_scores = cossim_sum(query) - cossim_sum(unwanted) * 2
 
-    scores = 0.7 * normalize([query_scores])[0] + 0.3 * normalize([rating_scores.to_numpy()])[0]
+    scores = 0.7 * normalize([query_scores])[0] + 0.3 * rating_scores
     
     args = np.argsort(-scores.flatten())
 
