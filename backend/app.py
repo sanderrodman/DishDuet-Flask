@@ -69,45 +69,45 @@ keys = ["time","dishname","cooktime","preptime","totaltime","detail","recipecate
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
 df["ingredientparts_str"] = df["ingredientparts"].apply(lambda x : str(x).replace(',', ''))
-df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) #could be done better
+df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) + " " + df["recipecategory"]
 
 df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
-df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', '))
+# df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', ')) + df["recipecategory"].apply(lambda x : list([x]))
+
 
 vocab_vectorizer = CountVectorizer(stop_words = 'english', max_df = .9, min_df = 3)
 vocab_matrix = vocab_vectorizer.fit_transform(df[["dishname", "keywords_str", "ingredientparts_str", "detail"]].values.reshape(-1,).tolist())
 vocabulary = vocab_vectorizer.vocabulary_
-term_to_doc = {term : i for i, term in enumerate(vocabulary)}
 
-def svd_maker():
 
-    vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
+# svd stuff
+vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
-    td_matrix = 0 # matrix not a number
-    for field, weight in [("dishname", 3), ("keywords_str", 1), ("ingredientparts_str", 1), ("detail", 1)]:
+td_matrix = 0 # matrix not a number
+for field, weight in [("dishname", 0.4), ("keywords_str", 0.2), ("ingredientparts_str", 0.2), ("detail", 0.2)]:
 
-        td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
+    td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
-    docs_compressed, s, words_compressed = svds(td_matrix, k=300)
+docs_compressed, s, words_compressed = svds(td_matrix, k=1000)
 
-    words_compressed = normalize(words_compressed.transpose()) # type: ignore
+words_compressed = words_compressed.transpose() # type: ignore
 
-    docs_compressed = normalize(docs_compressed) # type: ignore
+words_compressed_normed = normalize(words_compressed) # type: ignore
 
-    return (td_matrix, vectorizer, words_compressed, docs_compressed, s)
-
-td_matrix, vectorizer, words_compressed_normed, docs_compressed_normed, s = svd_maker()
+docs_compressed_normed = normalize(docs_compressed) # type: ignore
 
 
 def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
-    scores = (cossim_sum(query) - cossim_sum(unwanted)) * np.emath.logn(1000, df["aggregatedrating"] * df["reviewcount"]) 
+    rating_scores = df["aggregatedrating"] * np.log(df["reviewcount"] + 1)
     
-    args = np.argsort(-scores) # type: ignore
-    
-    df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
+    query_scores = cossim_sum(query) - cossim_sum(unwanted)
 
-    print(np.max(scores), np.emath.logn(1000, df_final.iloc[args].iloc[0]["aggregatedrating"] * df_final.iloc[args].iloc[0]["reviewcount"]))
+    scores = 0.7 * normalize([query_scores])[0] + 0.3 * normalize([rating_scores.to_numpy()])[0]
+    
+    args = np.argsort(-scores.flatten()) # type: ignore
+ 
+    df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
 
     results = filter(df_final.iloc[args], allergies, time).iloc[:r].values.tolist()
 
@@ -119,11 +119,13 @@ def cossim_sum(query):
 
     scores = np.zeros(df.shape[0])
 
-    query_tfidf = vectorizer.transform([query]).toarray() # type: ignore
+    if query != "":
 
-    query_vec = normalize(np.dot(query_tfidf, words_compressed_normed)).squeeze() # type: ignore
+        query_tfidf = vectorizer.transform([query]).toarray() # type: ignore
 
-    scores = docs_compressed_normed.dot(query_vec) # type: ignore
+        query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze() # type: ignore
+
+        scores = docs_compressed_normed.dot(query_vec) # type: ignore
     
     return scores
 
