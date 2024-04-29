@@ -98,12 +98,10 @@ docs_compressed_normed = normalize(docs_compressed) # type: ignore
 
 
 rating_scores = normalize([pd.Series(df["aggregatedrating"] * np.log(df["reviewcount"] + 1)).to_numpy()])[0]
-print(type(rating_scores))
-def svd_search(query, unwanted, allergies, time, r=20): # runs on search
-    
-    query_scores = cossim_sum(query) - cossim_sum(unwanted) * 2
 
-    scores = 0.7 * normalize([query_scores])[0] + 0.3 * rating_scores
+def svd_search(query, unwanted, allergies, time, r=20): # runs on search
+
+    scores = 0.7 * normalize([cossim_sum(query, unwanted)])[0] + 0.3 * rating_scores
     
     args = np.argsort(-scores.flatten())
 
@@ -115,18 +113,16 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
 
 # cosine similarity
-def cossim_sum(query):
+def cossim_sum(query, unwanted):
 
     scores = np.zeros(df.shape[0])
 
-    if query != "":
+    query_tfidf = vectorizer.transform([query]) - vectorizer.transform([unwanted]) # type: ignore
 
-        query_tfidf = vectorizer.transform([query]).toarray() # type: ignore
+    query_vec = normalize(np.dot(query_tfidf.toarray(), words_compressed)).squeeze() # type: ignore
 
-        query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze() # type: ignore
+    scores = docs_compressed_normed.dot(query_vec) # type: ignore
 
-        scores = docs_compressed_normed.dot(query_vec) # type: ignore
-    
     return scores
 
 
@@ -165,7 +161,7 @@ def home():
 @app.route("/recipes")
 def search():
 
-    dishname = str(request.args.get("dishname")).lower().strip()
+    dishname = str(request.args.get("q")).lower().strip()
 
     unwanted = str(request.args.get("unwanted")).lower().strip()
 

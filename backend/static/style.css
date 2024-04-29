@@ -167,6 +167,10 @@ header h1 {
     color: black;
 }
 
+.recipe-title:hover {
+    color: blue;
+}
+
 
 .recipe-detail {
     margin: 0px;
