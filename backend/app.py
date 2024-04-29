@@ -84,7 +84,7 @@ vocabulary = vocab_vectorizer.vocabulary_
 vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
 td_matrix = 0 # matrix not a number
-for field, weight in [("dishname", 0.4), ("keywords_str", 0.2), ("ingredientparts_str", 0.2), ("detail", 0.1), ("instructions", 0.1)]:
+for field, weight in [("dishname", 0.22), ("keywords_str", 0.195), ("ingredientparts_str", 0.195), ("detail", 0.195), ("instructions", 0.195)]:
 
     td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
 
