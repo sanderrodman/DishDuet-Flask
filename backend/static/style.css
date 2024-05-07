@@ -92,8 +92,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.7em;
-    padding: 3px;
+    font-size: 1.8em;
 }
 
 .top-text, .side_by_side, main, #search {
@@ -230,7 +229,7 @@ header h1 {
 }
 
 .text p {
-    margin: 16px 0px 0px 0px;
+    margin: 16px 0px 16px 0px;
 }
 
 .search-box {

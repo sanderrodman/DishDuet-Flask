@@ -5,9 +5,6 @@ from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
-
 from scipy.sparse.linalg import svds
 
 from sklearn.preprocessing import normalize
@@ -64,7 +61,7 @@ allergies_dic = {
 allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
 keys = ["time","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientparts","aggregatedrating","reviewcount","calories","instructions","images","subpage"]
+            "ingredientparts","aggregatedrating","reviewcount","calories","instructions","images","subpage", "dimension", "dimension_score", "score"]
 
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
@@ -72,42 +69,48 @@ df["ingredientparts_str"] = df["ingredientparts"].apply(lambda x : str(x).replac
 df["keywords_str"] = df["keywords"].apply(lambda x : str(x).replace(',', '')) + " " + df["recipecategory"]
 
 df["ingredientparts"] = df["ingredientparts"].apply(lambda x : str(x).split(', '))
-# df["keywords"] = df["keywords"].apply(lambda x : str(x).split(', ')) + df["recipecategory"].apply(lambda x : list([x]))
 
+df["combined"] = df["dishname"] + " " + df["keywords_str"] + " " + df["ingredientparts_str"] + " " + df["detail"] + " " + df["instructions"]
+df["combined"] = df["combined"].astype(str)
 
 vocab_vectorizer = CountVectorizer(stop_words = 'english', max_df = .9, min_df = 3)
-vocab_matrix = vocab_vectorizer.fit_transform(df[["dishname", "keywords_str", "ingredientparts_str", "detail", "instructions"]].values.reshape(-1,).tolist())
+vocab_vectorizer.fit_transform(df["combined"].tolist())
 vocabulary = vocab_vectorizer.vocabulary_
+inv_vocabulary = {v: k for k, v in vocabulary.items()}
 
 
 # svd stuff
 vectorizer = TfidfVectorizer(stop_words = 'english', vocabulary=vocabulary)
 
-td_matrix = 0 # matrix not a number
-for field, weight in [("dishname", 0.22), ("keywords_str", 0.195), ("ingredientparts_str", 0.195), ("detail", 0.195), ("instructions", 0.195)]:
+dt_matrix = 0.9 * vectorizer.fit_transform(df["combined"]) + 0.1 * vectorizer.fit_transform(df["dishname"])
 
-    td_matrix += weight * vectorizer.fit_transform(df[field].to_list()) # type: ignore
+docs_compressed, s, words_compressed = svds(dt_matrix, k=1000)
 
-docs_compressed, s, words_compressed = svds(td_matrix, k=1000)
+words_compressed = np.array(words_compressed, dtype=float).T
 
-words_compressed = words_compressed.transpose() # type: ignore
+docs_compressed = np.array(docs_compressed, dtype=float)
 
-words_compressed_normed = normalize(words_compressed) # type: ignore
+words_compressed_normed = np.array(normalize(words_compressed), dtype=float)
 
-docs_compressed_normed = normalize(docs_compressed) # type: ignore
+docs_compressed_normed = np.array(normalize(docs_compressed), dtype=float)
 
 
-rating_scores = normalize([pd.Series(df["aggregatedrating"] * np.log(df["reviewcount"] + 1)).to_numpy()])[0]
+rating_scores = normalize(pd.Series(df["aggregatedrating"] * np.log(df["reviewcount"] + 1)).to_numpy().reshape(-1, 1))[0]
 
 def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 
-    scores = 0.7 * normalize([cossim_sum(query, unwanted)])[0] + 0.3 * rating_scores
+    similarity, dimensions, dimension_scores = cossim_sum(query, unwanted)
+
+    scores = 0.7 * similarity + 0.3 * rating_scores
     
     args = np.argsort(-scores.flatten())
 
-    df_final = df.drop(columns = ["ingredientparts_str", "keywords_str"])
+    df_return = df.drop(columns = ["ingredientparts_str", "keywords_str", "combined"])
+    df_return["dimension"] = pd.Series(dimensions, dtype=str)
+    df_return["dimension_score"] = pd.Series(np.round(100 * dimension_scores, 2), dtype=float)
+    df_return["score"] = pd.Series(np.round(100 * similarity, 2), dtype=float)
 
-    results = filter(df_final.iloc[args], allergies, time).iloc[:r].values.tolist()
+    results = filter(df_return.iloc[args], allergies, time).iloc[:r].values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
@@ -115,15 +118,20 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 # cosine similarity
 def cossim_sum(query, unwanted):
 
-    scores = np.zeros(df.shape[0])
+    query_tfidf = normalize(vectorizer.transform([query]) - vectorizer.transform([unwanted])) # type: ignore
 
-    query_tfidf = vectorizer.transform([query]) - vectorizer.transform([unwanted]) # type: ignore
+    query_vec = np.array(np.dot(query_tfidf.toarray(), words_compressed_normed)).squeeze() # type: ignore
 
-    query_vec = normalize(np.dot(query_tfidf.toarray(), words_compressed)).squeeze() # type: ignore
+    scores = docs_compressed_normed.dot(query_vec)
 
-    scores = docs_compressed_normed.dot(query_vec) # type: ignore
-
-    return scores
+    dimensions = []
+    dimension_scores = []
+    for doc in docs_compressed_normed * query_vec:
+        words_argmax = words_compressed_normed[:, doc.argmax()]
+        dimensions.append(inv_vocabulary[words_argmax.argmax()])
+        dimension_scores.append(words_argmax.max())
+    
+    return (np.array(scores, dtype=float), dimensions, np.array(dimension_scores, dtype=float))
 
 
 def filter(df_filter, allergies, time): # boolean not search

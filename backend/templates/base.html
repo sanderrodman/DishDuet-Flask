@@ -103,11 +103,11 @@
 
         function star(rating, reviewcount) {
             if (4.8 <= rating) {
-                return `<img src="{{ url_for('static', filename='images/star.svg') }}">
-                <img src="{{ url_for('static', filename='images/star.svg') }}">
-                <img src="{{ url_for('static', filename='images/star.svg') }}">
-                <img src="{{ url_for('static', filename='images/star.svg') }}">
-                <img src="{{ url_for('static', filename='images/star.svg') }}">`+ `&nbsp;${reviewcount}`
+                return `<img  alt="" src="{{ url_for('static', filename='images/star.svg') }}">
+                <img alt="" src="{{ url_for('static', filename='images/star.svg') }}">
+                <img alt="" src="{{ url_for('static', filename='images/star.svg') }}">
+                <img alt="" src="{{ url_for('static', filename='images/star.svg') }}">
+                <img alt="" src="{{ url_for('static', filename='images/star.svg') }}">`+ `&nbsp;${reviewcount}`
             }
                 
             img = ``
@@ -132,7 +132,7 @@
             }
 
 
-        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, desc, calories) {
+        function answerBoxTemplate(dishname, rating, reviewcount, img, time, ingredients, subpage, desc, calories, dimension, dimension_score, score) {
             return`
             <div class="text">
                 <a href = "https://www.food.com/recipe/${subpage}" target="_blank" class="recipe-title">
@@ -154,6 +154,9 @@
                 </ul>
 
                 <p>${desc}</p>
+                
+                <strong>${score}%</strong> similar to your search<br/>
+                Possibly interested in <strong>${dimension}</strong> with <strong>${dimension_score}%</strong> similarity
             </div>
             <a class="imglink" href = "https://www.food.com/recipe/${subpage}" target="_blank"><img class="photo" src="${img}" alt="${dishname}"></a>`
         }
@@ -223,7 +226,8 @@
                     let tempDiv = document.createElement("div");
                     tempDiv.className = "result flex";
                     tempDiv.innerHTML = 
-                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, row.ingredientparts, row.subpage, row.detail, row.calories);
+                    answerBoxTemplate(row.dishname, row.aggregatedrating, row.reviewcount, row.images, row.time, 
+                    row.ingredientparts, row.subpage, row.detail, row.calories, row.dimension, row.dimension_score, row.score);
                     document.getElementById("answer-box").appendChild(tempDiv);
                 }));
             }
