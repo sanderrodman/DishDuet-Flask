@@ -5,7 +5,10 @@ from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import numpy as np
 import pandas as pd
+
 from scipy.sparse.linalg import svds
+
+import scipy.sparse
 
 from sklearn.preprocessing import normalize
 
@@ -94,15 +97,15 @@ words_compressed_normed = np.array(normalize(words_compressed), dtype=float)
 
 docs_compressed_normed = np.array(normalize(docs_compressed), dtype=float)
 
+rating_scores = df["aggregatedrating"] * np.sqrt(df["reviewcount"]) + 100
+rating_scores = np.array(np.emath.logn(100, rating_scores), dtype=float)
 
-rating_scores = normalize(pd.Series(df["aggregatedrating"] * np.log(df["reviewcount"] + 1)).to_numpy().reshape(-1, 1))[0]
-
-def svd_search(query, unwanted, allergies, time, r=20): # runs on search
+def svd_search(query, unwanted, allergies, time, r=30): # runs on search
 
     similarity, dimensions, dimension_scores = cossim_sum(query, unwanted)
 
-    scores = 0.7 * similarity + 0.3 * rating_scores
-    
+    scores = np.array(similarity * rating_scores, dtype=float)
+
     args = np.argsort(-scores.flatten())
 
     df_return = df.drop(columns = ["ingredientparts_str", "keywords_str", "combined"])
@@ -118,7 +121,7 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 # cosine similarity
 def cossim_sum(query, unwanted):
 
-    query_tfidf = normalize(vectorizer.transform([query]) - 1.3 * vectorizer.transform([unwanted])) # type: ignore
+    query_tfidf = normalize(vectorizer.transform([query]) - 1.5 * vectorizer.transform([unwanted])) # type: ignore
 
     query_vec = np.array(np.dot(query_tfidf.toarray(), words_compressed_normed)).squeeze() # type: ignore
 
