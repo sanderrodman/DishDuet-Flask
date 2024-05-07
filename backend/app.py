@@ -118,7 +118,7 @@ def svd_search(query, unwanted, allergies, time, r=20): # runs on search
 # cosine similarity
 def cossim_sum(query, unwanted):
 
-    query_tfidf = normalize(vectorizer.transform([query]) - vectorizer.transform([unwanted])) # type: ignore
+    query_tfidf = normalize(vectorizer.transform([query]) - 1.1 * vectorizer.transform([unwanted])) # type: ignore
 
     query_vec = np.array(np.dot(query_tfidf.toarray(), words_compressed_normed)).squeeze() # type: ignore
 
