@@ -1,3 +1,4 @@
+from ast import arg
 import json
 import os
 from flask import Flask, render_template, request
@@ -64,7 +65,7 @@ allergies_dic = {
 allergies_dic["vegan"] = allergies_dic["vegetarian"] + allergies_dic["egg"] + allergies_dic["dairy"]
 
 keys = ["time","dishname","cooktime","preptime","totaltime","detail","recipecategory","keywords",\
-            "ingredientparts","aggregatedrating","reviewcount","calories","instructions","images","subpage", "dimension", "dimension_score", "score"]
+            "ingredientparts","aggregatedrating","reviewcount","calories","instructions","images","subpage", "score", "dimension", "dimension_score"]
 
 df = pd.read_sql(f"""SELECT * FROM recipes""", mysql_engine.lease_connection().connection) # type: ignore
 
@@ -97,56 +98,79 @@ words_compressed_normed = np.array(normalize(words_compressed), dtype=float)
 
 docs_compressed_normed = np.array(normalize(docs_compressed), dtype=float)
 
-rating_scores = df["aggregatedrating"] * np.sqrt(df["reviewcount"]) + 100
-rating_scores = np.array(np.emath.logn(100, rating_scores), dtype=float)
 
-def svd_search(query, unwanted, allergies, time, r=30): # runs on search
+rating_scores = df["aggregatedrating"] * np.sqrt(df["reviewcount"]) + 69
+rating_scores = np.array(np.log10(rating_scores), dtype=float)
 
-    similarity, dimensions, dimension_scores = cossim_sum(query, unwanted)
-
-    scores = np.array(similarity * rating_scores, dtype=float)
-
-    args = np.argsort(-scores.flatten())
+def svd_search(query, unwanted, allergies, time): # runs on search
 
     df_return = df.drop(columns = ["ingredientparts_str", "keywords_str", "combined"])
+
+    if len(allergies) != 0 or time < 60:
+        df_return = filter(df_return, allergies, time)
+
+    index = df_return.index.to_numpy()
+
+    similarity, query_vec = cossim_sum(query, unwanted, index)
+
+    scores = np.array(similarity * rating_scores[index], dtype=float)
+    args = np.argsort(-scores.flatten())
+
+    df_return = df_return.iloc[args].iloc[:30].reset_index(drop=True)
+
+    dimensions, dimension_scores = dimension_and_score(args[:30], docs_compressed_normed, query_vec)
+  
+    df_return["score"] = pd.Series(np.round(100 * similarity, 2), dtype=float)
     df_return["dimension"] = pd.Series(dimensions, dtype=str)
     df_return["dimension_score"] = pd.Series(np.round(100 * dimension_scores, 2), dtype=float)
-    df_return["score"] = pd.Series(np.round(100 * similarity, 2), dtype=float)
 
-    results = filter(df_return.iloc[args], allergies, time).iloc[:r].values.tolist()
+    results = df_return.values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
 
 
 # cosine similarity
-def cossim_sum(query, unwanted):
+def cossim_sum(query, unwanted, index):
 
     query_tfidf = normalize(vectorizer.transform([query]) - 1.5 * vectorizer.transform([unwanted])) # type: ignore
 
     query_vec = np.array(np.dot(query_tfidf.toarray(), words_compressed_normed)).squeeze() # type: ignore
 
-    scores = docs_compressed_normed.dot(query_vec)
+    scores = docs_compressed_normed[index].dot(query_vec)
+    
+    return (np.array(scores, dtype=float), query_vec)
 
+
+def dimension_and_score(top_args, docs_compressed_normed, query_vec):
     dimensions = []
     dimension_scores = []
-    for doc in docs_compressed_normed * query_vec:
-        words_argmax = words_compressed_normed[:, doc.argmax()]
-        dimensions.append(inv_vocabulary[words_argmax.argmax()])
-        dimension_scores.append(words_argmax.max())
-    
-    return (np.array(scores, dtype=float), dimensions, np.array(dimension_scores, dtype=float))
+
+    for doc in docs_compressed_normed[top_args] * query_vec:
+        dimension_col = words_compressed_normed[:, doc.argmax()].squeeze()
+        top2_args = np.argpartition(dimension_col, -2)[-2:]
+        dimensions.append(inv_vocabulary[top2_args[0]] + " or " + inv_vocabulary[top2_args[1]])
+        dimension_scores.append(np.average(dimension_col[top2_args]))
+
+    return (dimensions, np.array(dimension_scores, dtype=float))
 
 
 def filter(df_filter, allergies, time): # boolean not search
 
+    df_filter = pd.DataFrame(df_filter)
+ 
     if len(allergies) != 0:
 
         for allergie_category in allergies:
 
-            df_filter = df_filter[df_filter["ingredientparts"].apply(lambda ingredients : filterIngredients(allergie_category, ingredients))]
+            indices = df_filter["ingredientparts"].apply(lambda ingredients : filterIngredients(allergie_category, ingredients))
+
+            df_filter = df_filter[indices]
                                   
     if time < 60 and time > 0:
-        df_filter = df_filter[df_filter["time"] <= time]
+
+        indices = df_filter["time"] <= time
+
+        df_filter = df_filter[indices]
 
     return df_filter
 
