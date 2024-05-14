@@ -123,7 +123,7 @@ def svd_search(query, unwanted, allergies, time): # runs on search
     df_return["score"] = pd.Series(np.round(100 * similarity[args], 2), dtype=float)
     df_return["dimension"] = pd.Series(dimensions, dtype=str)
     df_return["dimension_score"] = pd.Series(np.round(100 * dimension_scores, 2), dtype=float)
-    print(df_return.head())
+ 
     results = df_return.values.tolist()
 
     return json.dumps([dict(zip(keys,i)) for i in results])
