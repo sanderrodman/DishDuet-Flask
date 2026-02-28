@@ -3,15 +3,32 @@ import sqlalchemy as db
 
 class MySQLDatabaseHandler(object):
     
-    IS_DOCKER = True if 'DB_NAME' in os.environ else False
+    # Check for Cornell deployment server signature
+    IS_CORNELL_DOCKER = True if 'DB_NAME' in os.environ else False
+    # Check for general deployment server signature (like Railway)
+    IS_GENERAL_DEPLOYMENT = True if 'MYSQLDATABASE' in os.environ else False
 
     def __init__(self,MYSQL_USER,MYSQL_USER_PASSWORD,MYSQL_PORT,MYSQL_DATABASE,MYSQL_HOST = "localhost"):
         
-        self.MYSQL_HOST = os.environ['DB_NAME'] if MySQLDatabaseHandler.IS_DOCKER else MYSQL_HOST
-        self.MYSQL_USER = "admin" if MySQLDatabaseHandler.IS_DOCKER else MYSQL_USER
-        self.MYSQL_USER_PASSWORD = "admin" if MySQLDatabaseHandler.IS_DOCKER else MYSQL_USER_PASSWORD
-        self.MYSQL_PORT = 3306 if MySQLDatabaseHandler.IS_DOCKER else MYSQL_PORT
-        self.MYSQL_DATABASE = "kardashiandb" if MySQLDatabaseHandler.IS_DOCKER else MYSQL_DATABASE
+        if self.IS_GENERAL_DEPLOYMENT:
+            self.MYSQL_HOST = os.environ.get('MYSQLHOST', MYSQL_HOST) or MYSQL_HOST
+            self.MYSQL_USER = os.environ.get('MYSQLUSER', MYSQL_USER) or MYSQL_USER
+            self.MYSQL_USER_PASSWORD = os.environ.get('MYSQLPASSWORD', '')
+            self.MYSQL_PORT = int(os.environ.get('MYSQLPORT', MYSQL_PORT))
+            self.MYSQL_DATABASE = os.environ.get('MYSQLDATABASE', MYSQL_DATABASE) or MYSQL_DATABASE
+        elif self.IS_CORNELL_DOCKER:
+            self.MYSQL_HOST = os.environ.get('DB_NAME', MYSQL_HOST)
+            self.MYSQL_USER = "admin"
+            self.MYSQL_USER_PASSWORD = "admin"
+            self.MYSQL_PORT = 3306
+            self.MYSQL_DATABASE = "kardashiandb"
+        else:
+            self.MYSQL_HOST = MYSQL_HOST
+            self.MYSQL_USER = MYSQL_USER
+            self.MYSQL_USER_PASSWORD = MYSQL_USER_PASSWORD
+            self.MYSQL_PORT = MYSQL_PORT
+            self.MYSQL_DATABASE = MYSQL_DATABASE
+
         self.engine = self.validate_connection()
 
     def validate_connection(self):
@@ -35,7 +52,7 @@ class MySQLDatabaseHandler(object):
         return data
 
     def load_file_into_db(self,file_path  = None):
-        if MySQLDatabaseHandler.IS_DOCKER:
+        if self.IS_CORNELL_DOCKER or self.IS_GENERAL_DEPLOYMENT:
             return
         if file_path is None:
             file_path = os.path.join(os.environ['ROOT_PATH'],'init.sql')
